@@ -90,11 +90,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: ElevatedButton(
                         onPressed: () {
                            // Navigate to Login or Dashboard
-                           Navigator.pushReplacement(
+                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => const LoginScreen()), 
-                            // Note: LoginScreen might not be fully implemented or imported, check import.
-                            // I assumed LoginScreen exists based on file structure.
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -117,7 +115,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     TextButton(
                       onPressed: () {
                          // Skip action
-                         Navigator.pushReplacement(
+                         Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => const LoginScreen()),
                           );
