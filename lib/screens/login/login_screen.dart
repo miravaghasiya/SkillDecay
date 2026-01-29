@@ -215,26 +215,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 const SizedBox(height: 24),
                 
+                
                 // Social Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: SocialButton(
-                        text: "Google",
-                        onPressed: _handleGoogleLogin,
-                        icon: const Icon(Icons.g_mobiledata, color: Color(0xFF1E2A47)), 
-                      ),
+                Center(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: SocialButton(
+                      text: "Google",
+                      onPressed: _handleGoogleLogin,
+                      icon: const Icon(Icons.g_mobiledata, color: Color(0xFF1E2A47)), 
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: SocialButton(
-                        text: "GitHub",
-                        onPressed: () {}, // Not implemented
-                        icon: const Icon(Icons.code, color: Color(0xFF1E2A47)),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
+                
                 
                 const SizedBox(height: 32),
                 

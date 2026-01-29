@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -40,49 +41,50 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyB92mPF6k9yP1m0FtR6gai1bJSFV7psB2c',
-    appId: '1:483787424425:web:fbea8882e7473a73c09fb8',
-    messagingSenderId: '483787424425',
-    projectId: 'micro-skill-decay-detector',
-    authDomain: 'micro-skill-decay-detector.firebaseapp.com',
-    storageBucket: 'micro-skill-decay-detector.firebasestorage.app',
-    measurementId: 'G-C4YXYFBG6K',
+  static FirebaseOptions get web => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_WEB'] ?? '',
+    appId: dotenv.env['FIREBASE_APP_ID_WEB'] ?? '',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+    authDomain: dotenv.env['FIREBASE_AUTH_DOMAIN'] ?? '',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+    measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID_WEB'] ?? '',
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCUzTXVWubyKHhUWZSfxIbTa9K6MEhHJWw',
-    appId: '1:483787424425:android:c9e2cb142cdf902cc09fb8',
-    messagingSenderId: '483787424425',
-    projectId: 'micro-skill-decay-detector',
-    storageBucket: 'micro-skill-decay-detector.firebasestorage.app',
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_ANDROID'] ?? '',
+    appId: dotenv.env['FIREBASE_APP_ID_ANDROID'] ?? '',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyC8DSijbutSg6VCE59lN9v54Vm76Zs-RvM',
-    appId: '1:483787424425:ios:ccafae014e85d22fc09fb8',
-    messagingSenderId: '483787424425',
-    projectId: 'micro-skill-decay-detector',
-    storageBucket: 'micro-skill-decay-detector.firebasestorage.app',
-    iosBundleId: 'com.example.microSkillDecayDetector',
+  static FirebaseOptions get ios => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_IOS'] ?? '',
+    appId: dotenv.env['FIREBASE_APP_ID_IOS'] ?? '',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+    iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID'] ?? '',
   );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyC8DSijbutSg6VCE59lN9v54Vm76Zs-RvM',
-    appId: '1:483787424425:ios:ccafae014e85d22fc09fb8',
-    messagingSenderId: '483787424425',
-    projectId: 'micro-skill-decay-detector',
-    storageBucket: 'micro-skill-decay-detector.firebasestorage.app',
-    iosBundleId: 'com.example.microSkillDecayDetector',
+  static FirebaseOptions get macos => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_IOS'] ?? '',
+    appId: dotenv.env['FIREBASE_APP_ID_IOS'] ?? '',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+    iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID'] ?? '',
   );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyB92mPF6k9yP1m0FtR6gai1bJSFV7psB2c',
-    appId: '1:483787424425:web:8fdb6d94903ab966c09fb8',
-    messagingSenderId: '483787424425',
-    projectId: 'micro-skill-decay-detector',
-    authDomain: 'micro-skill-decay-detector.firebaseapp.com',
-    storageBucket: 'micro-skill-decay-detector.firebasestorage.app',
-    measurementId: 'G-H26SLSBBJ7',
+  static FirebaseOptions get windows => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_WINDOWS'] ?? '',
+    appId: dotenv.env['FIREBASE_APP_ID_WINDOWS'] ?? '',
+    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+    projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+    authDomain: dotenv.env['FIREBASE_AUTH_DOMAIN'] ?? '',
+    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+    measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID_WINDOWS'] ?? '',
   );
 }
+

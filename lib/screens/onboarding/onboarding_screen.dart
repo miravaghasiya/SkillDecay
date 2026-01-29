@@ -86,7 +86,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   if (_currentPage == _contents.length - 1) ...[
                     SizedBox(
                       width: double.infinity,
-                      height: 30,
+                      height: 56,
                       child: ElevatedButton(
                         onPressed: () {
                            // Navigate to Login or Dashboard
