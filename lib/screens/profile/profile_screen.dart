@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
+import '../../services/theme_provider.dart';
+import '../edit_profile/edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -121,9 +123,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Edit Profile Button
                   OutlinedButton(
                     onPressed: () {
-                      // TODO: Implement edit profile
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Edit profile coming soon')),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const EditProfileScreen(),
+                        ),
                       );
                     },
                     style: OutlinedButton.styleFrom(
@@ -207,14 +211,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildDivider(),
 
                   // Dark Mode
-                  _buildSettingsTile(
-                    title: 'Dark Mode',
-                    subtitle: 'Coming soon',
-                    trailing: Switch(
-                      value: false,
-                      onChanged: null, // Disabled
-                      activeColor: const Color(0xFF1E293B),
-                    ),
+                  Consumer<ThemeProvider>(
+                    builder: (context, themeProvider, child) {
+                      return _buildSettingsTile(
+                        title: 'Dark Mode',
+                        subtitle: themeProvider.isDarkMode ? 'Enabled' : 'Disabled',
+                        trailing: Switch(
+                          value: themeProvider.isDarkMode,
+                          onChanged: (value) {
+                            themeProvider.toggleTheme();
+                          },
+                          activeColor: Theme.of(context).colorScheme.primary,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
