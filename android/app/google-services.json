@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "483787424425",
+    "project_id": "micro-skill-decay-detector",
+    "storage_bucket": "micro-skill-decay-detector.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:483787424425:android:c9e2cb142cdf902cc09fb8",
+        "android_client_info": {
+          "package_name": "com.example.micro_skill_decay_detector"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "483787424425-t5kd4960oshbrfaitb6ihlb6itnvqveo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUzTXVWubyKHhUWZSfxIbTa9K6MEhHJWw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "483787424425-t5kd4960oshbrfaitb6ihlb6itnvqveo.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "483787424425-4me3c9thhqj2p66gkl0kmdvhhldf5o5j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.microSkillDecayDetector"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

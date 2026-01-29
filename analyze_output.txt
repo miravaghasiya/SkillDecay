@@ -1,0 +1,23 @@
+Analyzing micro_skill_decay_detector...                         
+
+warning - Unused import: 'package:micro_skill_decay_detector/config/theme.dart' - lib\screens\onboarding\onboarding_screen.dart:2:8 - unused_import
+   info - 'onPopInvoked' is deprecated and shouldn't be used. Use onPopInvokedWithResult instead. This feature was deprecated after v3.22.0-12.0.pre - lib\screens\onboarding\onboarding_screen.dart:38:9 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\onboarding\onboarding_screen.dart:206:47 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\screens\signup\signup_screen.dart:54:9 - avoid_print
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\signup\signup_screen.dart:207:54 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\signup\signup_screen.dart:210:51 - use_build_context_synchronously
+  error - The class 'GoogleSignIn' doesn't have an unnamed constructor - lib\services\auth_service.dart:9:38 - new_with_undefined_constructor_default
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:38:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:46:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:55:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:58:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:66:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:69:7 - avoid_print
+  error - The class 'GoogleSignIn' doesn't have an unnamed constructor - lib\services\auth_service.dart:77:53 - new_with_undefined_constructor_default
+  error - The method 'signIn' isn't defined for the type 'GoogleSignIn' - lib\services\auth_service.dart:77:68 - undefined_method
+   info - Uses 'await' on an instance of 'GoogleSignInAuthentication', which is not a subtype of 'Future' - lib\services\auth_service.dart:84:53 - await_only_futures
+  error - The getter 'accessToken' isn't defined for the type 'GoogleSignInAuthentication' - lib\services\auth_service.dart:86:33 - undefined_getter
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:101:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:129:7 - avoid_print
+
+19 issues found. (ran in 1.9s)

@@ -102,7 +102,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         child: const Text(
-                          "Next",
+                          "Get Started",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

@@ -1,0 +1,19 @@
+Analyzing micro_skill_decay_detector...                         
+
+  error - The getter 'instance' isn't defined for the type 'GoogleSignIn' - lib\main.dart:21:22 - undefined_getter
+warning - Unused import: 'package:micro_skill_decay_detector/config/theme.dart' - lib\screens\onboarding\onboarding_screen.dart:2:8 - unused_import
+   info - 'onPopInvoked' is deprecated and shouldn't be used. Use onPopInvokedWithResult instead. This feature was deprecated after v3.22.0-12.0.pre - lib\screens\onboarding\onboarding_screen.dart:38:9 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\onboarding\onboarding_screen.dart:206:47 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\screens\signup\signup_screen.dart:54:9 - avoid_print
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\signup\signup_screen.dart:207:54 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\signup\signup_screen.dart:210:51 - use_build_context_synchronously
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:40:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:48:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:57:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:60:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:68:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:71:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:103:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\auth_service.dart:131:7 - avoid_print
+
+15 issues found. (ran in 7.4s)
