@@ -8,6 +8,8 @@ class Skill {
   final String difficultyLevel; // 'Beginner', 'Intermediate', 'Advanced'
   final DateTime lastPracticed;
   final String? notes;
+  final double mastery; // 0-100
+  final List<String> weakTopics;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -19,6 +21,8 @@ class Skill {
     required this.difficultyLevel,
     required this.lastPracticed,
     this.notes,
+    this.mastery = 0.0,
+    this.weakTopics = const [],
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : createdAt = createdAt ?? DateTime.now(),
@@ -33,6 +37,8 @@ class Skill {
       'difficultyLevel': difficultyLevel,
       'lastPracticed': Timestamp.fromDate(lastPracticed),
       'notes': notes,
+      'mastery': mastery,
+      'weakTopics': weakTopics,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
     };
@@ -49,6 +55,8 @@ class Skill {
       difficultyLevel: data['difficultyLevel'] ?? 'Beginner',
       lastPracticed: (data['lastPracticed'] as Timestamp).toDate(),
       notes: data['notes'],
+      mastery: (data['mastery'] ?? 0.0).toDouble(),
+      weakTopics: List<String>.from(data['weakTopics'] ?? []),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       updatedAt: (data['updatedAt'] as Timestamp).toDate(),
     );
@@ -63,6 +71,8 @@ class Skill {
     String? difficultyLevel,
     DateTime? lastPracticed,
     String? notes,
+    double? mastery,
+    List<String>? weakTopics,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -74,6 +84,8 @@ class Skill {
       difficultyLevel: difficultyLevel ?? this.difficultyLevel,
       lastPracticed: lastPracticed ?? this.lastPracticed,
       notes: notes ?? this.notes,
+      mastery: mastery ?? this.mastery,
+      weakTopics: weakTopics ?? this.weakTopics,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

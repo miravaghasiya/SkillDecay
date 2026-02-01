@@ -10,8 +10,8 @@
 .history
 .svn/
 .swiftpm/
+node_modules/
 migrate_working_dir/
-
 # Environment variables
 .env
 
@@ -46,3 +46,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Secrets
+**/serviceAccountKey.json
