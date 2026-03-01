@@ -3,12 +3,14 @@ import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/skill_service.dart';
 import '../../models/skill.dart';
-import '../profile/profile_screen.dart';
 import '../add_skill/add_skill_screen.dart';
-import '../edit_skill/edit_skill_screen.dart';
 import '../skill_details/skill_details_screen.dart';
-import '../stats/stats_screen.dart';
 import '../alerts/alerts_screen.dart';
+import '../home/presentation/screens/home_screen.dart';
+import '../practice/presentation/screens/practice_screen.dart';
+import '../skills/presentation/screens/skills_screen.dart';
+import '../progress/presentation/screens/progress_screen.dart';
+import '../coach/presentation/screens/coach_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -24,27 +26,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final screens = [
-      _buildSkillsScreen(),
-      const StatsScreen(),
-      const AlertsScreen(),
-      const ProfileScreen(),
+      const HomeScreen(),         // 0 – Home
+      const PracticeScreen(),     // 1 – Practice
+      const SkillsScreen(),       // 2 – Skills
+      const ProgressScreen(),     // 3 – Progress
+      const CoachScreen(),        // 4 – AI Coach
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: screens[_selectedNavIndex],
-      bottomNavigationBar: _buildBottomNavBar(),
+      backgroundColor:
+          isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: child, // Just a buttery cross-fade
+          );
+        },
+        child: KeyedSubtree(
+          key: ValueKey<int>(_selectedNavIndex),
+          child: screens[_selectedNavIndex],
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNavBar(isDark),
     );
   }
+
+  // ─── Skills tab ─────────────────────────────────────────────────────────────
 
   Widget _buildSkillsScreen() {
     final user = Provider.of<AuthService>(context).currentUser;
     final skillService = SkillService();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: _buildAppBar(),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: _buildSkillsAppBar(),
       body: user == null
           ? const Center(child: Text('Please log in'))
           : StreamBuilder<List<Skill>>(
@@ -53,11 +75,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Error: ${snapshot.error}'),
-                  );
+                  return Center(child: Text('Error: ${snapshot.error}'));
                 }
 
                 final allSkills = snapshot.data ?? [];
@@ -90,32 +109,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
             MaterialPageRoute(builder: (_) => const AddSkillScreen()),
           );
         },
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: const Color(0xFF6366F1),
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildSkillsAppBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       elevation: 0,
       toolbarHeight: 80,
       title: StreamBuilder<List<Skill>>(
         stream: SkillService().getUserSkills(
-          Provider.of<AuthService>(context, listen: false).currentUser?.uid ?? '',
+          Provider.of<AuthService>(context, listen: false).currentUser?.uid ??
+              '',
         ),
         builder: (context, snapshot) {
           final skills = snapshot.data ?? [];
-          final urgentCount = skills.where((s) => _getSkillStatus(s) == 'urgent').length;
-          
+          final urgentCount =
+              skills.where((s) => _getSkillStatus(s) == 'urgent').length;
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'My Skills',
                 style: TextStyle(
-                  color: Color(0xFF1E293B),
+                  color: isDark ? Colors.white : const Color(0xFF1E293B),
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -123,8 +145,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 4),
               Text(
                 '$urgentCount skills need practice today',
-                style: const TextStyle(
-                  color: Color(0xFF64748B),
+                style: TextStyle(
+                  color: isDark
+                      ? Colors.white54
+                      : const Color(0xFF64748B),
                   fontSize: 14,
                   fontWeight: FontWeight.normal,
                 ),
@@ -135,27 +159,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications_outlined, color: Color(0xFF1E293B)),
-          onPressed: () {
-            // Navigate to alerts
-            setState(() {
-              _selectedNavIndex = 2;
-            });
-          },
+          icon: Icon(
+            Icons.notifications_outlined,
+            color: isDark ? Colors.white : const Color(0xFF1E293B),
+          ),
+          onPressed: () => setState(() => _selectedNavIndex = 3),
         ),
         Padding(
           padding: const EdgeInsets.only(right: 8),
           child: IconButton(
-            icon: const CircleAvatar(
+            icon: CircleAvatar(
               radius: 16,
-              backgroundColor: Color(0xFF1E293B),
-              child: Icon(Icons.person, color: Colors.white, size: 20),
+              backgroundColor: const Color(0xFF6366F1).withOpacity(0.15),
+              child: const Icon(Icons.person,
+                  color: Color(0xFF6366F1), size: 20),
             ),
-            onPressed: () {
-              setState(() {
-                _selectedNavIndex = 3;
-              });
-            },
+            onPressed: () => setState(() => _selectedNavIndex = 4),
           ),
         ),
       ],
@@ -163,11 +182,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildSearchBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
@@ -179,29 +199,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: TextField(
         onChanged: (value) {
-          setState(() {
-            _searchQuery = value.toLowerCase();
-          });
+          setState(() => _searchQuery = value.toLowerCase());
         },
-        decoration: const InputDecoration(
+        style: TextStyle(
+          color: isDark ? Colors.white : const Color(0xFF1E293B),
+        ),
+        decoration: InputDecoration(
           hintText: 'Search skills...',
-          hintStyle: TextStyle(color: Color(0xFF94A3B8)),
+          hintStyle: TextStyle(
+            color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+          ),
           border: InputBorder.none,
-          icon: Icon(Icons.search, color: Color(0xFF94A3B8)),
-          contentPadding: EdgeInsets.symmetric(vertical: 16),
+          icon: Icon(
+            Icons.search,
+            color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 16),
         ),
       ),
     );
   }
 
   Widget _buildFilterChips(List<Skill> allSkills) {
-    final urgentCount = allSkills.where((s) => _getSkillStatus(s) == 'urgent').length;
-    final decayingCount = allSkills.where((s) => _getSkillStatus(s) == 'decaying').length;
-    final safeCount = allSkills.where((s) => _getSkillStatus(s) == 'safe').length;
+    final urgentCount =
+        allSkills.where((s) => _getSkillStatus(s) == 'urgent').length;
+    final decayingCount =
+        allSkills.where((s) => _getSkillStatus(s) == 'decaying').length;
+    final safeCount =
+        allSkills.where((s) => _getSkillStatus(s) == 'safe').length;
 
-    return Container(
+    return SizedBox(
       height: 50,
-      margin: const EdgeInsets.only(bottom: 8),
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -218,9 +246,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label, String value, Color? dotColor, int count) {
+  Widget _buildFilterChip(
+      String label, String value, Color? dotColor, int count) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _selectedFilter == value;
-    
+
     return FilterChip(
       label: Row(
         mainAxisSize: MainAxisSize.min,
@@ -240,15 +270,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       selected: isSelected,
-      onSelected: (selected) {
-        setState(() {
-          _selectedFilter = value;
-        });
-      },
-      backgroundColor: Colors.white,
-      selectedColor: const Color(0xFF1E293B),
+      onSelected: (selected) => setState(() => _selectedFilter = value),
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+      selectedColor: const Color(0xFF6366F1),
       labelStyle: TextStyle(
-        color: isSelected ? Colors.white : const Color(0xFF1E293B),
+        color: isSelected
+            ? Colors.white
+            : isDark
+                ? Colors.white70
+                : const Color(0xFF1E293B),
         fontWeight: FontWeight.w600,
         fontSize: 14,
       ),
@@ -256,7 +286,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: isSelected ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+          color: isSelected
+              ? const Color(0xFF6366F1)
+              : isDark
+                  ? Colors.white12
+                  : const Color(0xFFE2E8F0),
         ),
       ),
     );
@@ -268,16 +302,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final statusColor = _getStatusColor(status);
     final progress = _calculateProgress(daysSince);
     final isUrgent = status == 'urgent';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withOpacity(isDark ? 0.12 : 0.06),
             blurRadius: 15,
             offset: const Offset(0, 4),
           ),
@@ -286,7 +321,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Title, Category Badge, Status Indicator
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -296,25 +330,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Text(
                       skill.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
                       ),
                     ),
                     const SizedBox(height: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: isDark
+                            ? Colors.white.withOpacity(0.06)
+                            : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         skill.category,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF64748B),
+                          color: isDark
+                              ? Colors.white54
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ),
@@ -343,18 +382,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          
-          // Last practiced text
           Text(
             'Last practiced: $daysSince days ago',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: Color(0xFF64748B),
+              color: isDark ? Colors.white54 : const Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 12),
-          
-          // Progress bar with percentage
           Row(
             children: [
               Expanded(
@@ -363,7 +398,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: LinearProgressIndicator(
                     value: progress / 100,
                     minHeight: 8,
-                    backgroundColor: const Color(0xFFF1F5F9),
+                    backgroundColor: isDark
+                        ? Colors.white.withOpacity(0.08)
+                        : const Color(0xFFF1F5F9),
                     valueColor: AlwaysStoppedAnimation<Color>(statusColor),
                   ),
                 ),
@@ -380,27 +417,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          
-          // Action button
           SizedBox(
             width: double.infinity,
             height: 48,
             child: isUrgent
                 ? ElevatedButton.icon(
-                    onPressed: () {
-                      // Practice action
-                      _showPracticeDialog(context, skill);
-                    },
+                    onPressed: () => _showPracticeDialog(context, skill),
                     icon: const Icon(Icons.bolt, size: 20),
                     label: const Text(
                       'Practice Now',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                          fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E293B),
+                      backgroundColor: const Color(0xFF6366F1),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -409,12 +439,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   )
                 : OutlinedButton(
-                    onPressed: () {
-                      _showSkillDetails(context, skill);
-                    },
+                    onPressed: () => _showSkillDetails(context, skill),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF1E293B),
-                      side: const BorderSide(color: Color(0xFF1E293B), width: 1.5),
+                      foregroundColor: const Color(0xFF6366F1),
+                      side: const BorderSide(
+                          color: Color(0xFF6366F1), width: 1.5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -422,9 +451,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: const Text(
                       'View Details',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                          fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ),
           ),
@@ -438,11 +465,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.lightbulb_outline,
-            size: 80,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.lightbulb_outline, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             _searchQuery.isNotEmpty
@@ -459,69 +482,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _searchQuery.isNotEmpty
                 ? 'Try a different search term'
                 : 'Add skills to get started',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBottomNavBar() {
+  // ─── Bottom nav ─────────────────────────────────────────────────────────────
+
+  Widget _buildBottomNavBar(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 14,
+            offset: const Offset(0, -3),
           ),
         ],
       ),
       child: BottomNavigationBar(
         currentIndex: _selectedNavIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedNavIndex = index;
-          });
-        },
+        onTap: (index) => setState(() => _selectedNavIndex = index),
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF1E293B),
-        unselectedItemColor: const Color(0xFF94A3B8),
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
+        backgroundColor: Colors.transparent,
+        selectedItemColor: const Color(0xFF6366F1),
+        unselectedItemColor:
+            isDark ? Colors.white38 : const Color(0xFF94A3B8),
+        selectedFontSize: 11,
+        unselectedFontSize: 11,
         elevation: 0,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.trending_up),
+            icon: Icon(Icons.grid_view_rounded),
+            activeIcon: Icon(Icons.grid_view_rounded),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Stats',
+            icon: Icon(Icons.flash_on_outlined),
+            activeIcon: Icon(Icons.flash_on_rounded),
+            label: 'Practice',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_outlined),
-            label: 'Alerts',
+            icon: Icon(Icons.menu_book_outlined),
+            activeIcon: Icon(Icons.menu_book_rounded),
+            label: 'Skills',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: Icon(Icons.trending_up_outlined),
+            activeIcon: Icon(Icons.trending_up_rounded),
+            label: 'Progress',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline_rounded),
+            activeIcon: Icon(Icons.chat_bubble_rounded),
+            label: 'Coach',
           ),
         ],
       ),
     );
   }
 
-  // Helper methods
+  // ─── Helpers ────────────────────────────────────────────────────────────────
+
   int _calculateDaysSinceLastPractice(Skill skill) {
-    final now = DateTime.now();
-    final difference = now.difference(skill.lastPracticed);
-    return difference.inDays;
+    return DateTime.now().difference(skill.lastPracticed).inDays;
   }
 
   String _getSkillStatus(Skill skill) {
@@ -534,19 +561,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'urgent':
-        return const Color(0xFFEF4444); // Red
+        return const Color(0xFFEF4444);
       case 'decaying':
-        return const Color(0xFFF59E0B); // Orange/Yellow
+        return const Color(0xFFF59E0B);
       case 'safe':
-        return const Color(0xFF10B981); // Green
+        return const Color(0xFF10B981);
       default:
         return Colors.grey;
     }
   }
 
   double _calculateProgress(int days) {
-    // Inverse calculation: fewer days = higher progress
-    if (days >= 14) return 25;
     if (days >= 10) return 25;
     if (days >= 7) return 55;
     if (days >= 5) return 55;
@@ -556,21 +581,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   List<Skill> _filterSkills(List<Skill> skills) {
     var filtered = skills;
-
-    // Apply search filter
     if (_searchQuery.isNotEmpty) {
       filtered = filtered
-          .where((skill) => skill.name.toLowerCase().contains(_searchQuery))
+          .where((s) => s.name.toLowerCase().contains(_searchQuery))
           .toList();
     }
-
-    // Apply status filter
     if (_selectedFilter != 'all') {
       filtered = filtered
-          .where((skill) => _getSkillStatus(skill) == _selectedFilter)
+          .where((s) => _getSkillStatus(s) == _selectedFilter)
           .toList();
     }
-
     return filtered;
   }
 
@@ -605,17 +625,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   }
                 } catch (e) {
                   if (context.mounted) {
+                    String errorMessage = 'Failed to mark as practiced.';
+                    if (e.toString().contains('permission-denied')) {
+                      errorMessage = 'Permission denied. Please log in again.';
+                    }
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Error: $e'),
+                        content: Text(errorMessage),
                         backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     );
                   }
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E293B),
+                backgroundColor: const Color(0xFF6366F1),
               ),
               child: const Text('Mark as Practiced'),
             ),
@@ -631,69 +657,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       MaterialPageRoute(
         builder: (_) => SkillDetailsScreen(skill: skill),
       ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            '$label:',
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          Text(value),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteDialog(BuildContext context, Skill skill) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Skill'),
-          content: Text('Are you sure you want to delete "${skill.name}"?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                try {
-                  await SkillService().deleteSkill(skill.id!);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Skill deleted successfully'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error deleting skill: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text(
-                'Delete',
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 }

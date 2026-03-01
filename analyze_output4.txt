@@ -30,18 +30,10 @@ Analyzing micro_skill_decay_detector...
   error - The named parameter 'offset' isn't defined - lib\screens\coach\presentation\screens\coach_screen.dart:145:7 - undefined_named_parameter
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:152:37 - deprecated_member_use
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:172:54 - deprecated_member_use
-  error - Expected to find ';' - lib\screens\coach\presentation\screens\coach_screen.dart:215:7 - expected_token
-warning - Dead code - lib\screens\coach\presentation\screens\coach_screen.dart:215:8 - dead_code
-  error - Expected an identifier - lib\screens\coach\presentation\screens\coach_screen.dart:215:8 - missing_identifier
-  error - Expected to find ';' - lib\screens\coach\presentation\screens\coach_screen.dart:215:8 - expected_token
-  error - Unexpected text ';' - lib\screens\coach\presentation\screens\coach_screen.dart:215:8 - unexpected_token
-  error - Expected an identifier - lib\screens\coach\presentation\screens\coach_screen.dart:216:5 - missing_identifier
-  error - Unexpected text ';' - lib\screens\coach\presentation\screens\coach_screen.dart:216:5 - unexpected_token
-   info - Unnecessary empty statement - lib\screens\coach\presentation\screens\coach_screen.dart:216:6 - empty_statements
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:268:54 - deprecated_member_use
-   info - Unnecessary use of 'toList' in a spread - lib\screens\coach\presentation\screens\coach_screen.dart:307:20 - unnecessary_to_list_in_spreads
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:341:33 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:454:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:267:54 - deprecated_member_use
+   info - Unnecessary use of 'toList' in a spread - lib\screens\coach\presentation\screens\coach_screen.dart:306:20 - unnecessary_to_list_in_spreads
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:340:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:453:54 - deprecated_member_use
   error - The named parameter 'offset' isn't defined - lib\screens\coach\presentation\widgets\chat_bubble.dart:47:7 - undefined_named_parameter
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\widgets\chat_bubble.dart:97:59 - deprecated_member_use
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\widgets\chat_bubble.dart:98:48 - deprecated_member_use
@@ -104,24 +96,19 @@ warning - Unused import: '../../../../core/animations/press_animation.dart' - li
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\practice\presentation\widgets\practice_card.dart:254:44 - deprecated_member_use
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\practice\presentation\widgets\practice_card.dart:310:48 - deprecated_member_use
   error - Expected to find ')' - lib\screens\practice\presentation\widgets\practice_card.dart:329:6 - expected_token
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\practice\presentation\widgets\practice_card.dart:390:26 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\practice\presentation\widgets\practice_card.dart:428:22 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\practice\presentation\widgets\practice_card.dart:430:41 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\practice\presentation\widgets\practice_card.dart:498:48 - deprecated_member_use
-  error - Expected to find ';' - lib\screens\practice\presentation\widgets\practice_card.dart:528:17 - expected_token
-warning - Dead code - lib\screens\practice\presentation\widgets\practice_card.dart:528:18 - dead_code
-  error - Expected an identifier - lib\screens\practice\presentation\widgets\practice_card.dart:528:18 - missing_identifier
-  error - Expected to find ';' - lib\screens\practice\presentation\widgets\practice_card.dart:528:18 - expected_token
-  error - Unexpected text ';' - lib\screens\practice\presentation\widgets\practice_card.dart:528:18 - unexpected_token
-  error - Expected an identifier - lib\screens\practice\presentation\widgets\practice_card.dart:529:9 - missing_identifier
-  error - Expected to find ';' - lib\screens\practice\presentation\widgets\practice_card.dart:529:9 - expected_token
-  error - Unexpected text ';' - lib\screens\practice\presentation\widgets\practice_card.dart:529:9 - unexpected_token
-  error - Expected an identifier - lib\screens\practice\presentation\widgets\practice_card.dart:529:10 - missing_identifier
-  error - Expected to find ';' - lib\screens\practice\presentation\widgets\practice_card.dart:529:10 - expected_token
-  error - Unexpected text ';' - lib\screens\practice\presentation\widgets\practice_card.dart:529:10 - unexpected_token
-  error - Expected an identifier - lib\screens\practice\presentation\widgets\practice_card.dart:530:5 - missing_identifier
-  error - Unexpected text ';' - lib\screens\practice\presentation\widgets\practice_card.dart:530:5 - unexpected_token
-   info - Unnecessary empty statement - lib\screens\practice\presentation\widgets\practice_card.dart:530:6 - empty_statements
+  error - Expected to find ')' - lib\screens\practice\presentation\widgets\practice_card.dart:366:6 - expected_token
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\practice\presentation\widgets\practice_card.dart:389:26 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\practice\presentation\widgets\practice_card.dart:427:22 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\practice\presentation\widgets\practice_card.dart:429:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\practice\presentation\widgets\practice_card.dart:497:48 - deprecated_member_use
+  error - Expected to find ';' - lib\screens\practice\presentation\widgets\practice_card.dart:527:7 - expected_token
+warning - Dead code - lib\screens\practice\presentation\widgets\practice_card.dart:527:8 - dead_code
+  error - Expected an identifier - lib\screens\practice\presentation\widgets\practice_card.dart:527:8 - missing_identifier
+  error - Expected to find ';' - lib\screens\practice\presentation\widgets\practice_card.dart:527:8 - expected_token
+  error - Unexpected text ';' - lib\screens\practice\presentation\widgets\practice_card.dart:527:8 - unexpected_token
+  error - Expected an identifier - lib\screens\practice\presentation\widgets\practice_card.dart:528:5 - missing_identifier
+  error - Unexpected text ';' - lib\screens\practice\presentation\widgets\practice_card.dart:528:5 - unexpected_token
+   info - Unnecessary empty statement - lib\screens\practice\presentation\widgets\practice_card.dart:528:6 - empty_statements
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\practice\presentation\widgets\practice_header.dart:62:42 - deprecated_member_use
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\practice\presentation\widgets\practice_header.dart:71:54 - deprecated_member_use
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\profile\profile_screen.dart:145:57 - deprecated_member_use

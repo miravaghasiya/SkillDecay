@@ -30,18 +30,11 @@ Analyzing micro_skill_decay_detector...
   error - The named parameter 'offset' isn't defined - lib\screens\coach\presentation\screens\coach_screen.dart:145:7 - undefined_named_parameter
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:152:37 - deprecated_member_use
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:172:54 - deprecated_member_use
-  error - Expected to find ';' - lib\screens\coach\presentation\screens\coach_screen.dart:215:7 - expected_token
-warning - Dead code - lib\screens\coach\presentation\screens\coach_screen.dart:215:8 - dead_code
-  error - Expected an identifier - lib\screens\coach\presentation\screens\coach_screen.dart:215:8 - missing_identifier
-  error - Expected to find ';' - lib\screens\coach\presentation\screens\coach_screen.dart:215:8 - expected_token
-  error - Unexpected text ';' - lib\screens\coach\presentation\screens\coach_screen.dart:215:8 - unexpected_token
-  error - Expected an identifier - lib\screens\coach\presentation\screens\coach_screen.dart:216:5 - missing_identifier
-  error - Unexpected text ';' - lib\screens\coach\presentation\screens\coach_screen.dart:216:5 - unexpected_token
-   info - Unnecessary empty statement - lib\screens\coach\presentation\screens\coach_screen.dart:216:6 - empty_statements
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:268:54 - deprecated_member_use
-   info - Unnecessary use of 'toList' in a spread - lib\screens\coach\presentation\screens\coach_screen.dart:307:20 - unnecessary_to_list_in_spreads
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:341:33 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:454:54 - deprecated_member_use
+  error - Expected to find ')' - lib\screens\coach\presentation\screens\coach_screen.dart:213:6 - expected_token
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:265:54 - deprecated_member_use
+   info - Unnecessary use of 'toList' in a spread - lib\screens\coach\presentation\screens\coach_screen.dart:304:20 - unnecessary_to_list_in_spreads
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:338:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\screens\coach_screen.dart:451:54 - deprecated_member_use
   error - The named parameter 'offset' isn't defined - lib\screens\coach\presentation\widgets\chat_bubble.dart:47:7 - undefined_named_parameter
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\widgets\chat_bubble.dart:97:59 - deprecated_member_use
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\coach\presentation\widgets\chat_bubble.dart:98:48 - deprecated_member_use

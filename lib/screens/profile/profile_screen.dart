@@ -11,316 +11,418 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen>
+    with SingleTickerProviderStateMixin {
   bool _notificationsEnabled = true;
+  late final AnimationController _fadeController;
+  late final Animation<double> _fadeIn;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..forward();
+    _fadeIn =
+        CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
 
   void _showLogoutDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to logout?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Provider.of<AuthService>(context, listen: false).signOut();
-              },
-              child: const Text(
-                'Logout',
-                style: TextStyle(color: Colors.red),
+      builder: (ctx) => AlertDialog(
+        backgroundColor:
+            isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Logout',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: isDark ? Colors.white : const Color(0xFF1E293B),
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to logout?',
+          style: TextStyle(
+            color: isDark ? Colors.white70 : const Color(0xFF475569),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: isDark ? Colors.white54 : const Color(0xFF64748B),
               ),
             ),
-          ],
-        );
-      },
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Provider.of<AuthService>(context, listen: false).signOut();
+            },
+            child: const Text(
+              'Logout',
+              style: TextStyle(
+                  color: Color(0xFFEF4444), fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = Provider.of<AuthService>(context).currentUser;
+    final displayName = user?.displayName ?? 'User';
+    final email = user?.email ?? '';
+    final initial =
+        displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor:
+          isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor:
+            isDark ? const Color(0xFF1E293B) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: isDark ? Colors.white : const Color(0xFF1E293B),
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Settings',
           style: TextStyle(
-            color: Color(0xFF1E293B),
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: isDark ? Colors.white : const Color(0xFF1E293B),
+            letterSpacing: -0.3,
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            // Profile Card
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // Avatar
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.person,
-                      size: 40,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Name
-                  Text(
-                    user?.displayName ?? 'John Doe',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  // Email
-                  Text(
-                    user?.email ?? 'john@example.com',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Edit Profile Button
-                  OutlinedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const EditProfileScreen(),
+      body: FadeTransition(
+        opacity: _fadeIn,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Profile Card ──────────────────────────────────────────────
+              _sectionCard(
+                isDark,
+                child: Column(
+                  children: [
+                    // Gradient avatar
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.grey[300]!),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                const Color(0xFF6366F1).withOpacity(0.35),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                      child: user?.photoURL != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(24),
+                              child: Image.network(user!.photoURL!,
+                                  fit: BoxFit.cover))
+                          : Center(
+                              child: Text(
+                                initial,
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                     ),
-                    child: const Text(
-                      'Edit Profile',
+                    const SizedBox(height: 14),
+                    Text(
+                      displayName,
                       style: TextStyle(
-                        color: Color(0xFF1E293B),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color:
+                            isDark ? Colors.white : const Color(0xFF1E293B),
+                        letterSpacing: -0.3,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Preferences Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Preferences',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
+                    const SizedBox(height: 4),
+                    Text(
+                      email,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: isDark
+                            ? Colors.white54
+                            : const Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const EditProfileScreen())),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Edit Profile',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
 
-            // Settings List
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // Notifications
-                  _buildSettingsTile(
-                    title: 'Notifications',
-                    subtitle: 'Push & email alerts',
-                    trailing: Switch(
-                      value: _notificationsEnabled,
-                      onChanged: (value) {
-                        setState(() {
-                          _notificationsEnabled = value;
-                        });
-                      },
-                      activeColor: const Color(0xFF1E293B),
-                    ),
-                  ),
-                  _buildDivider(),
+              const SizedBox(height: 24),
+              _sectionLabel('Preferences', isDark),
+              const SizedBox(height: 10),
 
-                  // Reminder Frequency
-                  _buildSettingsTile(
-                    title: 'Reminder Frequency',
-                    subtitle: 'Daily at 9:00 AM',
-                    trailing: const Icon(Icons.chevron_right, color: Color(0xFF64748B)),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Reminder settings coming soon')),
-                      );
-                    },
-                  ),
-                  _buildDivider(),
-
-                  // Dark Mode
-                  Consumer<ThemeProvider>(
-                    builder: (context, themeProvider, child) {
-                      return _buildSettingsTile(
+              // ── Preferences Card ─────────────────────────────────────────
+              _sectionCard(
+                isDark,
+                child: Column(
+                  children: [
+                    Consumer<ThemeProvider>(
+                      builder: (ctx, theme, _) => _buildTile(
+                        isDark: isDark,
+                        icon: Icons.dark_mode_rounded,
+                        iconColor: const Color(0xFF6366F1),
                         title: 'Dark Mode',
-                        subtitle: themeProvider.isDarkMode ? 'Enabled' : 'Disabled',
+                        subtitle: theme.isDarkMode ? 'Enabled' : 'Disabled',
                         trailing: Switch(
-                          value: themeProvider.isDarkMode,
-                          onChanged: (value) {
-                            themeProvider.toggleTheme();
-                          },
-                          activeColor: Theme.of(context).colorScheme.primary,
+                          value: theme.isDarkMode,
+                          onChanged: (_) => theme.toggleTheme(),
+                          activeColor: const Color(0xFF6366F1),
                         ),
-                      );
-                    },
-                  ),
-                ],
+                      ),
+                    ),
+                    _divider(isDark),
+                    _buildTile(
+                      isDark: isDark,
+                      icon: Icons.notifications_rounded,
+                      iconColor: const Color(0xFFF59E0B),
+                      title: 'Notifications',
+                      subtitle: 'Push & email alerts',
+                      trailing: Switch(
+                        value: _notificationsEnabled,
+                        onChanged: (v) =>
+                            setState(() => _notificationsEnabled = v),
+                        activeColor: const Color(0xFF6366F1),
+                      ),
+                    ),
+                    _divider(isDark),
+                    _buildTile(
+                      isDark: isDark,
+                      icon: Icons.alarm_rounded,
+                      iconColor: const Color(0xFF10B981),
+                      title: 'Reminder Frequency',
+                      subtitle: 'Daily at 9:00 AM',
+                      trailing: Icon(Icons.chevron_right_rounded,
+                          color: isDark
+                              ? Colors.white38
+                              : const Color(0xFF94A3B8)),
+                      onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content:
+                                Text('Reminder settings coming soon')),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
 
-            // Other Options
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // About SkillDecay
-                  _buildSettingsTile(
-                    title: 'About SkillDecay',
-                    subtitle: 'Version 1.0.0',
-                    onTap: () {
-                      showAboutDialog(
+              const SizedBox(height: 24),
+              _sectionLabel('App Settings', isDark),
+              const SizedBox(height: 10),
+
+              // ── App Settings Card ─────────────────────────────────────────
+              _sectionCard(
+                isDark,
+                child: Column(
+                  children: [
+                    _buildTile(
+                      isDark: isDark,
+                      icon: Icons.info_outline_rounded,
+                      iconColor: const Color(0xFF0EA5E9),
+                      title: 'About SkillDecay',
+                      subtitle: 'Version 1.0.0',
+                      trailing: Icon(Icons.chevron_right_rounded,
+                          color: isDark
+                              ? Colors.white38
+                              : const Color(0xFF94A3B8)),
+                      onTap: () => showAboutDialog(
                         context: context,
                         applicationName: 'SkillDecay',
                         applicationVersion: '1.0.0',
                         applicationLegalese: '© 2026 SkillDecay',
-                      );
-                    },
-                  ),
-                  _buildDivider(),
-
-                  // Help & Support
-                  _buildSettingsTile(
-                    title: 'Help & Support',
-                    trailing: const Icon(Icons.chevron_right, color: Color(0xFF64748B)),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Help & Support coming soon')),
-                      );
-                    },
-                  ),
-                  _buildDivider(),
-
-                  // Privacy Policy
-                  _buildSettingsTile(
-                    title: 'Privacy Policy',
-                    trailing: const Icon(Icons.chevron_right, color: Color(0xFF64748B)),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Privacy Policy coming soon')),
-                      );
-                    },
-                  ),
-                ],
+                      ),
+                    ),
+                    _divider(isDark),
+                    _buildTile(
+                      isDark: isDark,
+                      icon: Icons.privacy_tip_rounded,
+                      iconColor: const Color(0xFF8B5CF6),
+                      title: 'Privacy Policy',
+                      trailing: Icon(Icons.chevron_right_rounded,
+                          color: isDark
+                              ? Colors.white38
+                              : const Color(0xFF94A3B8)),
+                      onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Privacy Policy coming soon')),
+                      ),
+                    ),
+                    _divider(isDark),
+                    _buildTile(
+                      isDark: isDark,
+                      icon: Icons.help_outline_rounded,
+                      iconColor: const Color(0xFF10B981),
+                      title: 'Help & Support',
+                      trailing: Icon(Icons.chevron_right_rounded,
+                          color: isDark
+                              ? Colors.white38
+                              : const Color(0xFF94A3B8)),
+                      onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Help & Support coming soon')),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
 
-            // Logout Button
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _showLogoutDialog,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFEE2E2),
-                  elevation: 0,
+              const SizedBox(height: 28),
+
+              // ── Logout Button ───────────────────────────────────────────
+              GestureDetector(
+                onTap: _showLogoutDialog,
+                child: Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFEF4444).withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ),
-                child: const Text(
-                  'Logout',
-                  style: TextStyle(
-                    color: Color(0xFFDC2626),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.logout_rounded, color: Colors.white, size: 20),
+                      SizedBox(width: 10),
+                      Text(
+                        'Logout',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
-          ],
+
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildSettingsTile({
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  Widget _sectionCard(bool isDark, {required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.15 : 0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _sectionLabel(String text, bool isDark) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+        color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+      ),
+    );
+  }
+
+  Widget _divider(bool isDark) {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: isDark ? Colors.white10 : const Color(0xFFF1F5F9),
+    );
+  }
+
+  Widget _buildTile({
+    required bool isDark,
+    required IconData icon,
+    required Color iconColor,
     required String title,
     String? subtitle,
     Widget? trailing,
@@ -328,29 +430,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: Icon(icon, color: iconColor, size: 19),
+            ),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF1E293B),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
                     ),
                   ),
                   if (subtitle != null) ...[
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
+                        fontSize: 12.5,
+                        color: isDark
+                            ? Colors.white38
+                            : const Color(0xFF94A3B8),
                       ),
                     ),
                   ],
@@ -361,16 +476,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      color: Colors.grey[200],
-      indent: 16,
-      endIndent: 16,
     );
   }
 }

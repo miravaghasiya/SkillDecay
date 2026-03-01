@@ -51,9 +51,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             .collection('users')
             .doc(user.uid)
             .set({
-          'displayName': newName,
+          'display_name': newName,
           'email': user.email,
-          'updatedAt': FieldValue.serverTimestamp(),
+          'updated_at': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
 
         // Reload user to get updated info
@@ -70,10 +70,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         }
       } catch (e) {
         if (mounted) {
+          String errorMessage = 'Failed to update profile. Please try again.';
+          if (e.toString().contains('permission-denied')) {
+            errorMessage = 'Permission denied. Please log in again.';
+          } else if (e.toString().contains('network-request-failed')) {
+            errorMessage = 'Network error. Please check your connection.';
+          }
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: $e'),
+              content: Text(errorMessage),
               backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           );
         }
