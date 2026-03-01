@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../add_skill/add_skill_screen.dart';
 
 class PracticeEmptyState extends StatelessWidget {
-  const PracticeEmptyState({super.key});
+  final VoidCallback onAddSkill;
+
+  const PracticeEmptyState({super.key, required this.onAddSkill});
 
   @override
   Widget build(BuildContext context) {
@@ -49,13 +50,7 @@ class PracticeEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 28),
             GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const AddSkillScreen()),
-                );
-              },
+              onTap: onAddSkill,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 28, vertical: 14),

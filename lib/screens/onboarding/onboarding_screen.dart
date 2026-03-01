@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:micro_skill_decay_detector/services/preferences_service.dart';
 import 'package:micro_skill_decay_detector/screens/login/login_screen.dart';
 import 'package:micro_skill_decay_detector/screens/onboarding/widgets/animated_indicator.dart';
 import 'package:micro_skill_decay_detector/screens/onboarding/widgets/gradient_button.dart';
@@ -117,16 +119,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   void _navigateToLogin() {
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, animation, __) => const LoginScreen(),
-        transitionsBuilder: (_, anim, __, child) {
-          return FadeTransition(opacity: anim, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 400),
-      ),
-    );
+    // Set onboarding completed flag
+    Provider.of<PreferencesService>(context, listen: false)
+        .setOnboardingCompleted(true);
+    
+    // The AppStartRouter will automatically switch to LoginScreen
+    // since it listens to the PreferencesService.
   }
 
   @override

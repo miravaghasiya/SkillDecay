@@ -9,7 +9,8 @@ import '../widgets/empty_state.dart';
 import '../../../../core/animations/entrance_animation.dart';
 
 class PracticeScreen extends StatefulWidget {
-  const PracticeScreen({super.key});
+  final VoidCallback? onAddSkill;
+  const PracticeScreen({super.key, this.onAddSkill});
 
   @override
   State<PracticeScreen> createState() => _PracticeScreenState();
@@ -79,7 +80,11 @@ class _PracticeScreenState extends State<PracticeScreen>
                         padding: const EdgeInsets.fromLTRB(20, 56, 20, 20),
                         child: PracticeHeader(controller: _staggerCtrl),
                       ),
-                      const Expanded(child: PracticeEmptyState()),
+                      Expanded(
+                        child: PracticeEmptyState(
+                          onAddSkill: widget.onAddSkill ?? () {},
+                        ),
+                      ),
                     ],
                   );
                 }

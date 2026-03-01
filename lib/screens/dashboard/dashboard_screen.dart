@@ -11,29 +11,38 @@ import '../practice/presentation/screens/practice_screen.dart';
 import '../skills/presentation/screens/skills_screen.dart';
 import '../progress/presentation/screens/progress_screen.dart';
 import '../coach/presentation/screens/coach_screen.dart';
+import '../quiz/quiz_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  State<DashboardScreen> createState() => DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class DashboardScreenState extends State<DashboardScreen> {
   int _selectedNavIndex = 0;
   String _searchQuery = '';
   String _selectedFilter = 'all'; // 'all', 'urgent', 'decaying', 'safe'
+  bool _shouldOpenAddModal = false;
+
+  void setTab(int index, {bool openAddModal = false}) {
+    setState(() {
+      _selectedNavIndex = index;
+      _shouldOpenAddModal = openAddModal;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final screens = [
-      const HomeScreen(),         // 0 – Home
-      const PracticeScreen(),     // 1 – Practice
-      const SkillsScreen(),       // 2 – Skills
-      const ProgressScreen(),     // 3 – Progress
-      const CoachScreen(),        // 4 – AI Coach
+      const HomeScreen(), // 0 – Home
+      PracticeScreen(onAddSkill: () => setTab(2, openAddModal: true)), // 1 – Practice
+      SkillsScreen(openAddModal: _shouldOpenAddModal), // 2 – Skills
+      const ProgressScreen(), // 3 – Progress
+      const CoachScreen(), // 4 – AI Coach
     ];
 
     return Scaffold(
@@ -422,7 +431,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             height: 48,
             child: isUrgent
                 ? ElevatedButton.icon(
-                    onPressed: () => _showPracticeDialog(context, skill),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => QuizScreen(skill: skill),
+                        ),
+                      );
+                    },
                     icon: const Icon(Icons.bolt, size: 20),
                     label: const Text(
                       'Practice Now',
@@ -594,68 +610,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return filtered;
   }
 
-  void _showPracticeDialog(BuildContext context, Skill skill) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Practice Skill'),
-          content: Text('Mark "${skill.name}" as practiced today?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                try {
-                  final updatedSkill = skill.copyWith(
-                    lastPracticed: DateTime.now(),
-                    updatedAt: DateTime.now(),
-                  );
-                  await SkillService().updateSkill(updatedSkill.id!, updatedSkill);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Skill marked as practiced!'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    String errorMessage = 'Failed to mark as practiced.';
-                    if (e.toString().contains('permission-denied')) {
-                      errorMessage = 'Permission denied. Please log in again.';
-                    }
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(errorMessage),
-                        backgroundColor: Colors.red,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    );
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
-              ),
-              child: const Text('Mark as Practiced'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _showSkillDetails(BuildContext context, Skill skill) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => SkillDetailsScreen(skill: skill),
+        builder: (context) => SkillDetailsScreen(skill: skill),
       ),
     );
   }

@@ -70,6 +70,8 @@ class _ProfileScreenState extends State<ProfileScreen>
             onPressed: () {
               Navigator.pop(ctx);
               Provider.of<AuthService>(context, listen: false).signOut();
+              // Return to the first route (AppStartRouter root)
+              Navigator.of(context).popUntil((route) => route.isFirst);
             },
             child: const Text(
               'Logout',

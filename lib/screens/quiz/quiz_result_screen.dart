@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../models/quiz_question.dart';
 
 class QuizResultScreen extends StatelessWidget {
   final int score;
   final int totalQuestions;
-  final List<Map<String, dynamic>> questions;
+  final List<QuizQuestion> questions;
   final Map<int, int> userAnswers; // questionIndex -> selectedOptionIndex
 
   const QuizResultScreen({
@@ -16,7 +17,7 @@ class QuizResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percentage = (score / totalQuestions * 100).toInt();
+    final percentage = totalQuestions > 0 ? (score / totalQuestions * 100).toInt() : 0;
     Color scoreColor = percentage >= 80 ? Colors.green : (percentage >= 50 ? Colors.orange : Colors.red);
 
     return Scaffold(
@@ -77,10 +78,10 @@ class QuizResultScreen extends StatelessWidget {
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 final question = questions[index];
-                final correctIndex = question['correctIndex'] as int;
+                final correctIndex = question.correctAnswerIndex;
                 final userIndex = userAnswers[index] ?? -1;
                 final isCorrect = userIndex == correctIndex;
-                final options = question['options'] as List;
+                final options = question.options;
 
                 return Container(
                   padding: const EdgeInsets.all(16),
@@ -93,7 +94,7 @@ class QuizResultScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Q${index + 1}: ${question['question']}',
+                        'Q${index + 1}: ${question.question}',
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -101,42 +102,28 @@ class QuizResultScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      ...List.generate(options.length, (optIndex) {
-                        final isSelected = userIndex == optIndex;
-                        final isAnswer = correctIndex == optIndex;
-                        
-                        Color? textColor;
-                        FontWeight? fontWeight;
-                        
-                        if (isAnswer) {
-                          textColor = Colors.green[700];
-                          fontWeight = FontWeight.bold;
-                        } else if (isSelected && !isCorrect) {
-                          textColor = Colors.red[700];
-                          fontWeight = FontWeight.bold;
-                        } else {
-                          textColor = const Color(0xFF64748B);
-                          fontWeight = FontWeight.normal;
-                        }
+                      ...options.asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final text = entry.value;
+                        final isCorrectOption = idx == correctIndex;
+                        final isUserSelection = idx == userIndex;
 
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
+                        return Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(
                             children: [
                               Icon(
-                                isAnswer 
-                                    ? Icons.check_circle 
-                                    : (isSelected ? Icons.cancel : Icons.circle_outlined),
-                                size: 16,
-                                color: textColor,
+                                isCorrectOption ? Icons.check_circle : (isUserSelection ? Icons.cancel : Icons.radio_button_unchecked),
+                                size: 18,
+                                color: isCorrectOption ? Colors.green : (isUserSelection ? Colors.red : Colors.grey),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  options[optIndex],
+                                  text,
                                   style: TextStyle(
-                                    color: textColor,
-                                    fontWeight: fontWeight,
+                                    color: isCorrectOption ? Colors.green : (isUserSelection ? Colors.red : const Color(0xFF1E293B)),
+                                    fontWeight: isCorrectOption || isUserSelection ? FontWeight.w500 : FontWeight.normal,
                                   ),
                                 ),
                               ),
@@ -144,6 +131,17 @@ class QuizResultScreen extends StatelessWidget {
                           ),
                         );
                       }),
+                      if (question.explanation.isNotEmpty) ...[
+                        const Divider(height: 24),
+                        Text(
+                          'Explanation: ${question.explanation}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 );

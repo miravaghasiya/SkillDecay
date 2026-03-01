@@ -52,6 +52,7 @@ class _LoginScreenState extends State<LoginScreen>
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
+        // Clear navigation stack to return to AppStartRouter root
         if (mounted) {
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
@@ -84,6 +85,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     try {
       await Provider.of<AuthService>(context, listen: false).signInWithGoogle();
+      // Clear navigation stack to return to AppStartRouter root
       if (mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }

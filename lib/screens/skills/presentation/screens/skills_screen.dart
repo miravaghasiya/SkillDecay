@@ -7,7 +7,8 @@ import '../widgets/skill_card.dart';
 import '../widgets/skill_modal.dart';
 
 class SkillsScreen extends StatefulWidget {
-  const SkillsScreen({super.key});
+  final bool openAddModal;
+  const SkillsScreen({super.key, this.openAddModal = false});
 
   @override
   State<SkillsScreen> createState() => _SkillsScreenState();
@@ -21,6 +22,14 @@ class _SkillsScreenState extends State<SkillsScreen>
   String _filterStatus = 'all'; // all | high | moderate | stable
 
   @override
+  void didUpdateWidget(covariant SkillsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.openAddModal && !oldWidget.openAddModal) {
+      _openAddModal();
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     _staggerCtrl = AnimationController(
@@ -29,7 +38,16 @@ class _SkillsScreenState extends State<SkillsScreen>
     )..forward();
 
     _searchCtrl.addListener(() {
-      setState(() => _searchQuery = _searchCtrl.text.trim().toLowerCase());
+      if (mounted) {
+        setState(() => _searchQuery = _searchCtrl.text.trim().toLowerCase());
+      }
+    });
+
+    // Check if we should open the add modal automatically
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.openAddModal) {
+        _openAddModal();
+      }
     });
   }
 
@@ -92,6 +110,8 @@ class _SkillsScreenState extends State<SkillsScreen>
   }
 
   Future<void> _confirmDelete(BuildContext ctx, Skill skill) async {
+    final user = Provider.of<AuthService>(context, listen: false).currentUser;
+    
     final confirmed = await showDialog<bool>(
       context: ctx,
       builder: (_) => AlertDialog(
@@ -119,8 +139,8 @@ class _SkillsScreenState extends State<SkillsScreen>
       ),
     );
 
-    if (confirmed == true && skill.id != null) {
-      await SkillService().deleteSkill(skill.id!);
+    if (confirmed == true && skill.id != null && user != null) {
+      await SkillService().deleteSkill(user.uid, skill.id!);
       if (ctx.mounted) {
         ScaffoldMessenger.of(ctx).showSnackBar(
           SnackBar(

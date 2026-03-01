@@ -57,6 +57,7 @@ class _SignUpScreenState extends State<SignUpScreen>
           _nameController.text.trim(),
         );
 
+        // Clear navigation stack to return to AppStartRouter root
         if (mounted) {
           Navigator.of(context).popUntil((route) => route.isFirst);
         }

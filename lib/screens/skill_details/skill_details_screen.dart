@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../models/skill.dart';
 import '../../services/skill_service.dart';
+import '../../services/auth_service.dart';
 import '../edit_skill/edit_skill_screen.dart';
 import '../quiz/quiz_screen.dart';
 
@@ -548,28 +550,6 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: OutlinedButton(
-              onPressed: () => _showPracticeDialog(context, skill),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1E293B),
-                side: const BorderSide(color: Color(0xFF1E293B), width: 1.5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: const Text(
-                'Mark as Practiced',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -590,8 +570,11 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
+                final user = Provider.of<AuthService>(context, listen: false).currentUser;
+                if (user == null) return;
+                
                 try {
-                  await SkillService().deleteSkill(skill.id!);
+                  await SkillService().deleteSkill(user.uid, skill.id!);
                   if (context.mounted) {
                     Navigator.pop(context); // Pop details screen
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -623,55 +606,4 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
     );
   }
 
-  void _showPracticeDialog(BuildContext context, Skill skill) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Practice Skill'),
-          content: Text('Mark "${skill.name}" as practiced today?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                try {
-                  final updatedSkill = skill.copyWith(
-                    lastPracticed: DateTime.now(),
-                    updatedAt: DateTime.now(),
-                  );
-                  await SkillService().updateSkill(skill.id!, updatedSkill);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Skill marked as practiced!'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                    // No need to pop, stream updates UI
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E293B),
-              ),
-              child: const Text('Mark as Practiced'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 }

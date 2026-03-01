@@ -3,12 +3,15 @@ import '../models/skill.dart';
 
 class SkillService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final String _collection = 'skills';
+
+  CollectionReference _userSkills(String userId) {
+    return _firestore.collection('users').doc(userId).collection('skills');
+  }
 
   // Add a new skill
   Future<String> addSkill(Skill skill) async {
     try {
-      DocumentReference docRef = await _firestore.collection(_collection).add(skill.toMap());
+      DocumentReference docRef = await _userSkills(skill.userId).add(skill.toMap());
       return docRef.id;
     } catch (e) {
       throw Exception('Failed to add skill: $e');
@@ -17,9 +20,7 @@ class SkillService {
 
   // Get all skills for a user
   Stream<List<Skill>> getUserSkills(String userId) {
-    return _firestore
-        .collection(_collection)
-        .where('userId', isEqualTo: userId)
+    return _userSkills(userId)
         .orderBy('updatedAt', descending: true)
         .snapshots()
         .map((snapshot) {
@@ -28,9 +29,9 @@ class SkillService {
   }
 
   // Get a single skill by ID
-  Future<Skill?> getSkill(String skillId) async {
+  Future<Skill?> getSkill(String userId, String skillId) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection(_collection).doc(skillId).get();
+      DocumentSnapshot doc = await _userSkills(userId).doc(skillId).get();
       if (doc.exists) {
         return Skill.fromFirestore(doc);
       }
@@ -41,9 +42,9 @@ class SkillService {
   }
 
   // Update a skill
-  Future<void> updateSkill(String skillId, Skill skill) async {
+  Future<void> updateSkill(String userId, String skillId, Skill skill) async {
     try {
-      await _firestore.collection(_collection).doc(skillId).update(
+      await _userSkills(userId).doc(skillId).update(
             skill.copyWith(updatedAt: DateTime.now()).toMap(),
           );
     } catch (e) {
@@ -52,9 +53,9 @@ class SkillService {
   }
 
   // Delete a skill
-  Future<void> deleteSkill(String skillId) async {
+  Future<void> deleteSkill(String userId, String skillId) async {
     try {
-      await _firestore.collection(_collection).doc(skillId).delete();
+      await _userSkills(userId).doc(skillId).delete();
     } catch (e) {
       throw Exception('Failed to delete skill: $e');
     }
@@ -62,9 +63,7 @@ class SkillService {
 
   // Get skills by category
   Stream<List<Skill>> getSkillsByCategory(String userId, String category) {
-    return _firestore
-        .collection(_collection)
-        .where('userId', isEqualTo: userId)
+    return _userSkills(userId)
         .where('category', isEqualTo: category)
         .orderBy('updatedAt', descending: true)
         .snapshots()
@@ -75,9 +74,7 @@ class SkillService {
 
   // Get skills by difficulty level
   Stream<List<Skill>> getSkillsByDifficulty(String userId, String difficultyLevel) {
-    return _firestore
-        .collection(_collection)
-        .where('userId', isEqualTo: userId)
+    return _userSkills(userId)
         .where('difficultyLevel', isEqualTo: difficultyLevel)
         .orderBy('updatedAt', descending: true)
         .snapshots()

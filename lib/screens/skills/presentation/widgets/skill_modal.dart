@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../models/skill.dart';
 import '../../../../services/skill_service.dart';
 import '../../../../services/auth_service.dart';
@@ -105,9 +106,12 @@ class _SkillModalState extends State<SkillModal>
 
     setState(() => _isLoading = true);
     try {
-      final user =
-          Provider.of<AuthService>(context, listen: false).currentUser;
-      if (user == null) throw Exception('User not logged in');
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        debugPrint('SkillModal: UID is null, user not logged in');
+        throw Exception('User not logged in');
+      }
+      debugPrint('SkillModal: UID found: ${user.uid}');
 
       final notes =
           _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim();
@@ -121,7 +125,8 @@ class _SkillModalState extends State<SkillModal>
           notes: notes,
           updatedAt: DateTime.now(),
         );
-        await _skillService.updateSkill(widget.skill!.id!, updated);
+        debugPrint('SkillModal: Updating skill ${widget.skill!.id!} for user ${user.uid}');
+        await _skillService.updateSkill(user.uid, widget.skill!.id!, updated);
       } else {
         final skill = Skill(
           userId: user.uid,
@@ -131,16 +136,26 @@ class _SkillModalState extends State<SkillModal>
           lastPracticed: _lastPracticed,
           notes: notes,
         );
+        debugPrint('SkillModal: Adding new skill for user ${user.uid}');
         await _skillService.addSkill(skill);
       }
 
       HapticFeedback.mediumImpact();
 
       if (mounted) {
+        // Success feedback
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                _isEdit ? 'Skill updated! 🎉' : 'Skill added! 🎉'),
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_outline_rounded, color: Colors.white),
+                const SizedBox(width: 12),
+                Text(
+                  _isEdit ? 'Skill updated! 🎉' : 'Skill added! 🎉',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
             backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(

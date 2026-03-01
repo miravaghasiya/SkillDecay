@@ -85,6 +85,9 @@ class _EditSkillScreenState extends State<EditSkillScreen> {
       });
 
       try {
+        final user = Provider.of<AuthService>(context, listen: false).currentUser;
+        if (user == null) throw Exception('User not logged in');
+
         final updatedSkill = widget.skill.copyWith(
           name: _skillNameController.text.trim(),
           category: _selectedCategory,
@@ -93,7 +96,7 @@ class _EditSkillScreenState extends State<EditSkillScreen> {
           notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
         );
 
-        await _skillService.updateSkill(widget.skill.id!, updatedSkill);
+        await _skillService.updateSkill(user.uid, widget.skill.id!, updatedSkill);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

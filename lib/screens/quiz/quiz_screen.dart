@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/skill.dart';
+import '../../models/quiz_question.dart';
 import '../../services/quiz_service.dart';
+import '../../services/skill_service.dart';
+import '../../services/practice_service.dart';
 import 'quiz_result_screen.dart';
 
 class QuizScreen extends StatefulWidget {
@@ -16,14 +20,14 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> {
   final QuizService _quizService = QuizService();
   
-  List<Map<String, dynamic>> _questions = [];
+  List<QuizQuestion> _questions = [];
   int _currentQuestionIndex = 0;
   int _score = 0;
   bool _isLoading = true;
   String? _error;
   
   Timer? _timer;
-  static const int _questionDuration = 10; // Changed to 10 seconds
+  static const int _questionDuration = 15; // Increased to 15 seconds for AI questions
   int _timeLeft = _questionDuration;
   bool _answered = false;
   int? _selectedOptionIndex;
@@ -45,11 +49,12 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Future<void> _loadQuiz() async {
     try {
-      final questions = await _quizService.generateQuiz(
-        skillId: widget.skill.id!, // Assuming ID exists
+      final questions = await _quizService.generateQuizBatch(
+        skillId: widget.skill.id!,
         skillTitle: widget.skill.name,
         category: widget.skill.category,
         userLevel: widget.skill.difficultyLevel,
+        mastery: widget.skill.mastery,
       );
       
       if (mounted) {
@@ -113,12 +118,12 @@ class _QuizScreenState extends State<QuizScreen> {
     }
 
     final currentQuestion = _questions[_currentQuestionIndex];
-    if (optionIndex == currentQuestion['correctIndex']) {
+    if (optionIndex == currentQuestion.correctAnswerIndex) {
       _score++;
     }
 
     // Wait and go to next
-    Future.delayed(const Duration(seconds: 1), () { // Faster transition
+    Future.delayed(const Duration(seconds: 1), () {
       if (!mounted) return;
       
       if (_currentQuestionIndex < _questions.length - 1) {
@@ -133,30 +138,52 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Future<void> _finishQuiz() async {
-    // Save session in background
-    _quizService.saveSession(
-      userId: widget.skill.userId,
-      skillId: widget.skill.id!,
-      score: _score,
-      totalQuestions: _questions.length,
-      difficultyLevel: widget.skill.difficultyLevel,
-      questions: _questions,
-      userAnswers: _userAnswers,
-    );
+    // Clear cache for this skill
+    _quizService.clearCache(widget.skill.id!);
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Calculate new mastery
+        final double scoreRatio = _score / _questions.length;
+        final double masteryIncrease = scoreRatio * 5.0;
+        final double newMastery = (widget.skill.mastery + masteryIncrease).clamp(0.0, 100.0);
+
+        final practiceService = PracticeService();
+
+        // 1. Mark practice as complete (updates skill & creates session)
+        await practiceService.markPracticeComplete(
+          user.uid,
+          widget.skill.id!,
+          newMastery: newMastery,
+        );
+
+        // 2. Save detailed quiz results
+        await practiceService.saveQuizResult(
+          userId: user.uid,
+          skillId: widget.skill.id!,
+          score: _score,
+          totalQuestions: _questions.length,
+          difficultyLevel: widget.skill.difficultyLevel,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error finishing quiz: $e');
+    }
 
     // Navigate to results
     if (mounted) {
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-            builder: (_) => QuizResultScreen(
-                score: _score,
-                totalQuestions: _questions.length,
-                questions: _questions,
-                userAnswers: _userAnswers,
-            ),
-            ),
-        );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QuizResultScreen(
+            score: _score,
+            totalQuestions: _questions.length,
+            questions: _questions,
+            userAnswers: _userAnswers,
+          ),
+        ),
+      );
     }
   }
 
@@ -245,7 +272,7 @@ class _QuizScreenState extends State<QuizScreen> {
           ),
           const SizedBox(height: 32),
           Text(
-            question['question'],
+            question.question,
             style: const TextStyle(
               fontSize: 20, 
               fontWeight: FontWeight.bold,
@@ -259,8 +286,8 @@ class _QuizScreenState extends State<QuizScreen> {
               itemCount: 4,
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
-                final options = question['options'] as List;
-                return _buildOptionButton(index, options[index], question['correctIndex']);
+                final options = question.options;
+                return _buildOptionButton(index, options[index], question.correctAnswerIndex);
               },
             ),
           ),

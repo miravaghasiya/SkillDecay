@@ -1,11 +1,14 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../models/skill.dart';
 import '../../../skill_details/skill_details_screen.dart';
 import '../../../../services/skill_service.dart';
+import '../../../../services/auth_service.dart';
 import '../../../../core/animations/entrance_animation.dart';
 import '../../../../core/animations/press_animation.dart';
 import '../../../../core/animations/page_transition.dart';
+import '../../../quiz/quiz_screen.dart';
 
 class PracticeCard extends StatefulWidget {
   final Skill skill;
@@ -124,38 +127,13 @@ class _PracticeCardState extends State<PracticeCard>
     }
   }
 
-  Future<void> _markPracticed() async {
-    if (_isStarting) return;
-    setState(() => _isStarting = true);
-    try {
-      final updated = widget.skill.copyWith(
-        lastPracticed: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-      await SkillService().updateSkill(widget.skill.id!, updated);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('"${widget.skill.name}" marked as practiced! 🎉'),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: const Color(0xFFEF4444),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isStarting = false);
-    }
+  void _startPractice() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => QuizScreen(skill: widget.skill),
+      ),
+    );
   }
 
   // ─── Build ─────────────────────────────────────────────────────────────────
@@ -291,7 +269,7 @@ class _PracticeCardState extends State<PracticeCard>
                         const SizedBox(height: 8),
                         _StartButton(
                           isLoading: _isStarting,
-                          onPressed: _markPracticed,
+                          onPressed: _startPractice,
                         ),
                       ],
                     ),
