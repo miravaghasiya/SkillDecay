@@ -10,7 +10,8 @@ import '../../../../core/animations/entrance_animation.dart';
 
 class PracticeScreen extends StatefulWidget {
   final VoidCallback? onAddSkill;
-  const PracticeScreen({super.key, this.onAddSkill});
+  final String? highlightSkillId;
+  const PracticeScreen({super.key, this.onAddSkill, this.highlightSkillId});
 
   @override
   State<PracticeScreen> createState() => _PracticeScreenState();
@@ -36,10 +37,17 @@ class _PracticeScreenState extends State<PracticeScreen>
     super.dispose();
   }
 
-  /// Sort skills: highest risk (most days since practice) first
+  /// Sort skills: highest risk (most days since practice) first.
+  /// If a highlightSkillId is provided, it floats to the very top.
   List<Skill> _sortByUrgency(List<Skill> skills) {
     final sorted = List<Skill>.from(skills);
     sorted.sort((a, b) {
+      if (widget.highlightSkillId != null) {
+        if (a.id == widget.highlightSkillId && b.id != widget.highlightSkillId)
+          return -1;
+        if (b.id == widget.highlightSkillId && a.id != widget.highlightSkillId)
+          return 1;
+      }
       final da = DateTime.now().difference(a.lastPracticed).inDays;
       final db = DateTime.now().difference(b.lastPracticed).inDays;
       return db.compareTo(da);
@@ -50,12 +58,12 @@ class _PracticeScreenState extends State<PracticeScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final user =
-        Provider.of<AuthService>(context, listen: false).currentUser;
+    final user = Provider.of<AuthService>(context, listen: false).currentUser;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF1F5F9),
       body: user == null
           ? const Center(child: CircularProgressIndicator())
           : StreamBuilder<List<Skill>>(
@@ -63,8 +71,49 @@ class _PracticeScreenState extends State<PracticeScreen>
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF6366F1),
+                    child: CircularProgressIndicator(color: Color(0xFF6366F1)),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  debugPrint(
+                    'PracticeScreen Firestore Error: ${snapshot.error}',
+                  );
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.lock_outline_rounded,
+                            size: 56,
+                            color: Colors.red.withOpacity(0.5),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Access Denied or Connection Error',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'We could not load your practice data. Please verify your permissions.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }
@@ -116,17 +165,16 @@ class _PracticeScreenState extends State<PracticeScreen>
                     SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            return PracticeCard(
-                              skill: sortedSkills[index],
-                              entranceAnimation: _staggerCtrl,
-                              intervalStart: (0.2 + index * 0.07)
-                                  .clamp(0.0, 0.9),
-                            );
-                          },
-                          childCount: sortedSkills.length,
-                        ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          return PracticeCard(
+                            skill: sortedSkills[index],
+                            entranceAnimation: _staggerCtrl,
+                            isHighlighted:
+                                sortedSkills[index].id ==
+                                widget.highlightSkillId,
+                            intervalStart: (0.2 + index * 0.07).clamp(0.0, 0.9),
+                          );
+                        }, childCount: sortedSkills.length),
                       ),
                     ),
 
@@ -172,17 +220,11 @@ class _PrioritySummaryChips extends StatelessWidget {
             ),
           if (highCount > 0 && modCount > 0) const SizedBox(width: 8),
           if (modCount > 0)
-            _Chip(
-              label: '$modCount Moderate',
-              color: const Color(0xFFF59E0B),
-            ),
+            _Chip(label: '$modCount Moderate', color: const Color(0xFFF59E0B)),
           if ((highCount > 0 || modCount > 0) && stableCount > 0)
             const SizedBox(width: 8),
           if (stableCount > 0)
-            _Chip(
-              label: '$stableCount Stable',
-              color: const Color(0xFF10B981),
-            ),
+            _Chip(label: '$stableCount Stable', color: const Color(0xFF10B981)),
         ],
       ),
     );

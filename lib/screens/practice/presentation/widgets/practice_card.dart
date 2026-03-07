@@ -1,10 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../../models/skill.dart';
 import '../../../skill_details/skill_details_screen.dart';
-import '../../../../services/skill_service.dart';
-import '../../../../services/auth_service.dart';
+import '../../../../services/quiz_service.dart';
 import '../../../../core/animations/entrance_animation.dart';
 import '../../../../core/animations/press_animation.dart';
 import '../../../../core/animations/page_transition.dart';
@@ -14,12 +12,14 @@ class PracticeCard extends StatefulWidget {
   final Skill skill;
   final Animation<double> entranceAnimation;
   final double intervalStart;
+  final bool isHighlighted;
 
   const PracticeCard({
     super.key,
     required this.skill,
     required this.entranceAnimation,
     this.intervalStart = 0.0,
+    this.isHighlighted = false,
   });
 
   @override
@@ -28,6 +28,7 @@ class PracticeCard extends StatefulWidget {
 
 class _PracticeCardState extends State<PracticeCard>
     with TickerProviderStateMixin {
+  final QuizService _quizService = QuizService();
   late final AnimationController _tapController;
   late final AnimationController _ringController;
   late final Animation<double> _ringAnimation;
@@ -127,13 +128,46 @@ class _PracticeCardState extends State<PracticeCard>
     }
   }
 
-  void _startPractice() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => QuizScreen(skill: widget.skill),
-      ),
-    );
+  Future<void> _startPractice() async {
+    if (_isStarting) return;
+
+    setState(() {
+      _isStarting = true;
+    });
+
+    try {
+      final questions = await _quizService.generateQuizBatch(
+        skillId: widget.skill.id ?? '',
+        skillTitle: widget.skill.name,
+        category: widget.skill.category,
+        userLevel: widget.skill.difficultyLevel,
+        mastery: widget.skill.mastery,
+      );
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              QuizScreen(skill: widget.skill, initialQuestions: questions),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to generate quiz right now. Please try again.'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isStarting = false;
+        });
+      }
+    }
   }
 
   // ─── Build ─────────────────────────────────────────────────────────────────
@@ -144,6 +178,7 @@ class _PracticeCardState extends State<PracticeCard>
     final priorityColor = _priorityColor(status);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final mastery = widget.skill.mastery.clamp(0.0, 100.0);
+    final highlightColor = const Color(0xFF6366F1);
 
     return AnimatedEntranceWrapper(
       animationController: widget.entranceAnimation as AnimationController,
@@ -153,9 +188,7 @@ class _PracticeCardState extends State<PracticeCard>
         onTap: () {
           Navigator.push(
             context,
-            FadeSlidePageRoute(
-              page: SkillDetailsScreen(skill: widget.skill),
-            ),
+            FadeSlidePageRoute(page: SkillDetailsScreen(skill: widget.skill)),
           );
         },
         child: Container(
@@ -163,10 +196,15 @@ class _PracticeCardState extends State<PracticeCard>
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border(
-              left: BorderSide(color: priorityColor, width: 4),
-            ),
+            border: Border(left: BorderSide(color: priorityColor, width: 4)),
             boxShadow: [
+              if (widget.isHighlighted)
+                BoxShadow(
+                  color: highlightColor.withOpacity(isDark ? 0.35 : 0.25),
+                  blurRadius: 20,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 6),
+                ),
               BoxShadow(
                 color: priorityColor.withOpacity(isDark ? 0.1 : 0.07),
                 blurRadius: 18,
@@ -174,130 +212,170 @@ class _PracticeCardState extends State<PracticeCard>
               ),
             ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Main row ──────────────────────────────────────────
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Progress ring
-                    AnimatedBuilder(
-                      animation: _ringAnimation,
-                      builder: (_, __) => _SkillRing(
-                        progress: (mastery / 100.0) * _ringAnimation.value,
-                        value: mastery.toInt(),
-                        color: priorityColor,
-                        isDark: isDark,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: widget.isHighlighted
+                  ? Border.all(
+                      color: highlightColor.withOpacity(0.5),
+                      width: 1.5,
+                    )
+                  : null,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (widget.isHighlighted)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: highlightColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Text(
+                          'Recommended Skill',
+                          style: TextStyle(
+                            color: Color(0xFF6366F1),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 14),
+                  // ── Main row ──────────────────────────────────────────
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Progress ring
+                      AnimatedBuilder(
+                        animation: _ringAnimation,
+                        builder: (_, __) => _SkillRing(
+                          progress: (mastery / 100.0) * _ringAnimation.value,
+                          value: mastery.toInt(),
+                          color: priorityColor,
+                          isDark: isDark,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
 
-                    // Skill info
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.skill.name,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF1E293B),
+                      // Skill info
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.skill.name,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF1E293B),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            _statusMessage(),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark
-                                  ? Colors.white54
-                                  : const Color(0xFF64748B),
+                            const SizedBox(height: 3),
+                            Text(
+                              _statusMessage(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark
+                                    ? Colors.white54
+                                    : const Color(0xFF64748B),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 7, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color:
-                                      const Color(0xFF6366F1).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  _difficultyLabel(),
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF6366F1),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 7,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF6366F1,
+                                    ).withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    _difficultyLabel(),
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF6366F1),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                '${_estimatedMinutes()} min',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: isDark
-                                      ? Colors.white38
-                                      : const Color(0xFF94A3B8),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${_estimatedMinutes()} min',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isDark
+                                        ? Colors.white38
+                                        : const Color(0xFF94A3B8),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      // Badge + Start button
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          _RiskBadge(
+                            color: priorityColor,
+                            label: _badgeLabel(status),
+                          ),
+                          const SizedBox(height: 8),
+                          _StartButton(
+                            isLoading: _isStarting,
+                            onPressed: _startPractice,
                           ),
                         ],
                       ),
-                    ),
+                    ],
+                  ),
 
-                    const SizedBox(width: 10),
-
-                    // Badge + Start button
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        _RiskBadge(
-                          color: priorityColor,
-                          label: _badgeLabel(status),
+                  // ── Reason text (only when not practiced today) ────────
+                  if (_daysSince() > 0) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: priorityColor.withOpacity(0.06),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '💡 ${_reasonText()}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? Colors.white60
+                              : const Color(0xFF475569),
+                          fontStyle: FontStyle.italic,
                         ),
-                        const SizedBox(height: 8),
-                        _StartButton(
-                          isLoading: _isStarting,
-                          onPressed: _startPractice,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                // ── Reason text (only when not practiced today) ────────
-                if (_daysSince() > 0) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: priorityColor.withOpacity(0.06),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '💡 ${_reasonText()}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? Colors.white60 : const Color(0xFF475569),
-                        fontStyle: FontStyle.italic,
                       ),
                     ),
-                  ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),
@@ -460,7 +538,7 @@ class _StartButtonState extends State<_StartButton>
   @override
   Widget build(BuildContext context) {
     return AnimatedPressWrapper(
-      onTap: widget.onPressed,
+      onTap: widget.isLoading ? null : widget.onPressed,
       pressedScale: 0.91,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
@@ -482,7 +560,9 @@ class _StartButtonState extends State<_StartButton>
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(
-                    color: Colors.white, strokeWidth: 2),
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
               )
             : const Row(
                 mainAxisSize: MainAxisSize.min,

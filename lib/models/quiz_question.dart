@@ -1,39 +1,25 @@
-class QuizQuestion {
-  final String id;
-  final String question;
-  final List<String> options;
-  final int correctAnswerIndex;
-  final String explanation;
-  final String difficulty; // beginner, intermediate, advanced
+import 'question_model.dart';
 
+@Deprecated('Use QuestionModel from question_model.dart')
+class QuizQuestion extends QuestionModel {
   QuizQuestion({
-    required this.id,
-    required this.question,
-    required this.options,
-    required this.correctAnswerIndex,
-    required this.explanation,
-    required this.difficulty,
+    required super.id,
+    required super.question,
+    required super.options,
+    required super.correctAnswerIndex,
+    required super.explanation,
+    required super.difficulty,
   });
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
+    final model = QuestionModel.fromJson(json);
     return QuizQuestion(
-      id: json['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      question: json['question'] ?? '',
-      options: List<String>.from(json['options'] ?? []),
-      correctAnswerIndex: json['correctIndex'] ?? json['correctAnswerIndex'] ?? 0,
-      explanation: json['explanation'] ?? '',
-      difficulty: json['difficulty'] ?? json['userLevel'] ?? 'intermediate',
+      id: model.id,
+      question: model.question,
+      options: model.options,
+      correctAnswerIndex: model.correctAnswerIndex,
+      explanation: model.explanation,
+      difficulty: model.difficulty,
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'question': question,
-      'options': options,
-      'correctAnswerIndex': correctAnswerIndex,
-      'explanation': explanation,
-      'difficulty': difficulty,
-    };
   }
 }

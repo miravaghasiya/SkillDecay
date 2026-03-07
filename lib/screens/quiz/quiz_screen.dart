@@ -2,16 +2,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/skill.dart';
-import '../../models/quiz_question.dart';
+import '../../models/question_model.dart';
 import '../../services/quiz_service.dart';
-import '../../services/skill_service.dart';
 import '../../services/practice_service.dart';
 import 'quiz_result_screen.dart';
 
 class QuizScreen extends StatefulWidget {
   final Skill skill;
+  final List<QuestionModel>? initialQuestions;
 
-  const QuizScreen({super.key, required this.skill});
+  const QuizScreen({super.key, required this.skill, this.initialQuestions});
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -19,19 +19,20 @@ class QuizScreen extends StatefulWidget {
 
 class _QuizScreenState extends State<QuizScreen> {
   final QuizService _quizService = QuizService();
-  
-  List<QuizQuestion> _questions = [];
+
+  List<QuestionModel> _questions = [];
   int _currentQuestionIndex = 0;
   int _score = 0;
   bool _isLoading = true;
   String? _error;
-  
+
   Timer? _timer;
-  static const int _questionDuration = 15; // Increased to 15 seconds for AI questions
+  static const int _questionDuration =
+      15; // Increased to 15 seconds for AI questions
   int _timeLeft = _questionDuration;
   bool _answered = false;
   int? _selectedOptionIndex;
-  
+
   // Track user answers: questionIndex -> selectedOptionIndex
   final Map<int, int> _userAnswers = {};
 
@@ -49,6 +50,18 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Future<void> _loadQuiz() async {
     try {
+      if (widget.initialQuestions != null &&
+          widget.initialQuestions!.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _questions = widget.initialQuestions!;
+            _isLoading = false;
+          });
+          _startTimer();
+        }
+        return;
+      }
+
       final questions = await _quizService.generateQuizBatch(
         skillId: widget.skill.id!,
         skillTitle: widget.skill.name,
@@ -56,7 +69,7 @@ class _QuizScreenState extends State<QuizScreen> {
         userLevel: widget.skill.difficultyLevel,
         mastery: widget.skill.mastery,
       );
-      
+
       if (mounted) {
         setState(() {
           _questions = questions;
@@ -67,7 +80,7 @@ class _QuizScreenState extends State<QuizScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          _error = 'Failed to generate quiz. Please try again.';
           _isLoading = false;
         });
       }
@@ -83,7 +96,7 @@ class _QuizScreenState extends State<QuizScreen> {
         _selectedOptionIndex = null;
       });
     }
-    
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_timeLeft > 0) {
         if (mounted) {
@@ -106,10 +119,10 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void _submitAnswer(int optionIndex) {
     if (_answered) return;
-    
+
     _timer?.cancel();
     _userAnswers[_currentQuestionIndex] = optionIndex;
-    
+
     if (mounted) {
       setState(() {
         _answered = true;
@@ -125,7 +138,7 @@ class _QuizScreenState extends State<QuizScreen> {
     // Wait and go to next
     Future.delayed(const Duration(seconds: 1), () {
       if (!mounted) return;
-      
+
       if (_currentQuestionIndex < _questions.length - 1) {
         setState(() {
           _currentQuestionIndex++;
@@ -147,7 +160,8 @@ class _QuizScreenState extends State<QuizScreen> {
         // Calculate new mastery
         final double scoreRatio = _score / _questions.length;
         final double masteryIncrease = scoreRatio * 5.0;
-        final double newMastery = (widget.skill.mastery + masteryIncrease).clamp(0.0, 100.0);
+        final double newMastery = (widget.skill.mastery + masteryIncrease)
+            .clamp(0.0, 100.0);
 
         final practiceService = PracticeService();
 
@@ -165,6 +179,12 @@ class _QuizScreenState extends State<QuizScreen> {
           score: _score,
           totalQuestions: _questions.length,
           difficultyLevel: widget.skill.difficultyLevel,
+        );
+
+        await _quizService.saveQuizHistory(
+          userId: user.uid,
+          skillId: widget.skill.id!,
+          questions: _questions,
         );
       }
     } catch (e) {
@@ -192,7 +212,10 @@ class _QuizScreenState extends State<QuizScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Practice: ${widget.skill.name}', style: const TextStyle(color: Color(0xFF1E293B))),
+        title: Text(
+          'Practice: ${widget.skill.name}',
+          style: const TextStyle(color: Color(0xFF1E293B)),
+        ),
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
         elevation: 0,
@@ -207,10 +230,14 @@ class _QuizScreenState extends State<QuizScreen> {
     }
     if (_error != null) {
       return Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text('Error: $_error', textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)),
-          )
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            'Error: $_error',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
       );
     }
     if (_questions.isEmpty) {
@@ -218,7 +245,7 @@ class _QuizScreenState extends State<QuizScreen> {
     }
 
     final question = _questions[_currentQuestionIndex];
-    
+
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -230,7 +257,9 @@ class _QuizScreenState extends State<QuizScreen> {
               value: (_currentQuestionIndex + 1) / _questions.length,
               minHeight: 8,
               backgroundColor: Colors.grey[200],
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                Color(0xFF10B981),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -245,25 +274,34 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: _timeLeft < 4 ? Colors.red.withOpacity(0.1) : Colors.grey[100],
+                  color: _timeLeft < 4
+                      ? Colors.red.withOpacity(0.1)
+                      : Colors.grey[100],
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   children: [
                     Icon(
-                      Icons.timer, 
-                      size: 16, 
-                      color: _timeLeft < 4 ? Colors.red : const Color(0xFF64748B)
+                      Icons.timer,
+                      size: 16,
+                      color: _timeLeft < 4
+                          ? Colors.red
+                          : const Color(0xFF64748B),
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      "$_timeLeft s", 
+                      "$_timeLeft s",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: _timeLeft < 4 ? Colors.red : const Color(0xFF64748B)
-                      )
+                        color: _timeLeft < 4
+                            ? Colors.red
+                            : const Color(0xFF64748B),
+                      ),
                     ),
                   ],
                 ),
@@ -274,7 +312,7 @@ class _QuizScreenState extends State<QuizScreen> {
           Text(
             question.question,
             style: const TextStyle(
-              fontSize: 20, 
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Color(0xFF1E293B),
               height: 1.4,
@@ -287,7 +325,11 @@ class _QuizScreenState extends State<QuizScreen> {
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 final options = question.options;
-                return _buildOptionButton(index, options[index], question.correctAnswerIndex);
+                return _buildOptionButton(
+                  index,
+                  options[index],
+                  question.correctAnswerIndex,
+                );
               },
             ),
           ),
@@ -300,18 +342,18 @@ class _QuizScreenState extends State<QuizScreen> {
     Color borderColor = Colors.grey[200]!;
     Color backgroundColor = Colors.white;
     Color textColor = const Color(0xFF1E293B);
-    
+
     // Show correct/incorrect selection after answering
     if (_answered) {
-        if (index == correctIndex) {
-            borderColor = const Color(0xFF10B981);
-            backgroundColor = const Color(0xFF10B981).withOpacity(0.1);
-            textColor = const Color(0xFF10B981);
-        } else if (index == _selectedOptionIndex) {
-            borderColor = const Color(0xFFEF4444);
-            backgroundColor = const Color(0xFFEF4444).withOpacity(0.1);
-            textColor = const Color(0xFFEF4444);
-        }
+      if (index == correctIndex) {
+        borderColor = const Color(0xFF10B981);
+        backgroundColor = const Color(0xFF10B981).withOpacity(0.1);
+        textColor = const Color(0xFF10B981);
+      } else if (index == _selectedOptionIndex) {
+        borderColor = const Color(0xFFEF4444);
+        backgroundColor = const Color(0xFFEF4444).withOpacity(0.1);
+        textColor = const Color(0xFFEF4444);
+      }
     }
 
     return InkWell(
@@ -330,8 +372,10 @@ class _QuizScreenState extends State<QuizScreen> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: _answered && (index == correctIndex || index == _selectedOptionIndex) 
-                    ? borderColor 
+                color:
+                    _answered &&
+                        (index == correctIndex || index == _selectedOptionIndex)
+                    ? borderColor
                     : Colors.grey[100],
                 shape: BoxShape.circle,
               ),
@@ -340,7 +384,10 @@ class _QuizScreenState extends State<QuizScreen> {
                   String.fromCharCode(65 + index), // A, B, C, D
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: _answered && (index == correctIndex || index == _selectedOptionIndex)
+                    color:
+                        _answered &&
+                            (index == correctIndex ||
+                                index == _selectedOptionIndex)
                         ? Colors.white
                         : const Color(0xFF64748B),
                   ),

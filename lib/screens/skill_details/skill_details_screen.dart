@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/skill.dart';
 import '../../services/skill_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/quiz_service.dart';
 import '../edit_skill/edit_skill_screen.dart';
 import '../quiz/quiz_screen.dart';
 
@@ -20,19 +21,30 @@ class SkillDetailsScreen extends StatefulWidget {
 class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
   late Stream<DocumentSnapshot> _skillStream;
   late Stream<QuerySnapshot> _historyStream;
+  final QuizService _quizService = QuizService();
+  bool _isStartingPractice = false;
 
   @override
   void initState() {
     super.initState();
+
+    final userId =
+        Provider.of<AuthService>(context, listen: false).currentUser?.uid ??
+        'unknown';
+
     _skillStream = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
         .collection('skills')
         .doc(widget.skill.id)
         .snapshots();
-        
+
     _historyStream = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
         .collection('practice_sessions')
         .where('skillId', isEqualTo: widget.skill.id)
-        .orderBy('date', descending: true)
+        // Removed orderBy to prevent missing index errors. Client sorting or timestamp field checks can be used instead.
         .snapshots();
   }
 
@@ -42,18 +54,22 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
       stream: _skillStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Scaffold(body: Center(child: Text('Error: ${snapshot.error}')));
+          return Scaffold(
+            body: Center(child: Text('Error: ${snapshot.error}')),
+          );
         }
-        
+
         if (!snapshot.hasData) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
 
         final skillDoc = snapshot.data!;
         if (!skillDoc.exists) {
-            return const Scaffold(body: Center(child: Text('Skill not found')));
+          return const Scaffold(body: Center(child: Text('Skill not found')));
         }
-        
+
         final skill = Skill.fromFirestore(skillDoc);
 
         return Scaffold(
@@ -101,7 +117,11 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
             border: Border.all(color: Colors.grey[300]!),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.arrow_back, size: 20, color: Color(0xFF1E293B)),
+          child: const Icon(
+            Icons.arrow_back,
+            size: 20,
+            color: Color(0xFF1E293B),
+          ),
         ),
         onPressed: () => Navigator.pop(context),
       ),
@@ -118,9 +138,7 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => EditSkillScreen(skill: skill),
-              ),
+              MaterialPageRoute(builder: (_) => EditSkillScreen(skill: skill)),
             );
           },
         ),
@@ -145,9 +163,12 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
   Widget _buildHeader(Skill skill) {
     // Determine color based on mastery
     Color statusColor;
-    if (skill.mastery >= 80) statusColor = const Color(0xFF10B981); // Green
-    else if (skill.mastery >= 50) statusColor = const Color(0xFFF59E0B); // Amber
-    else statusColor = const Color(0xFFEF4444); // Red
+    if (skill.mastery >= 80)
+      statusColor = const Color(0xFF10B981); // Green
+    else if (skill.mastery >= 50)
+      statusColor = const Color(0xFFF59E0B); // Amber
+    else
+      statusColor = const Color(0xFFEF4444); // Red
 
     return Row(
       children: [
@@ -199,7 +220,10 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
               ),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(20),
@@ -223,23 +247,23 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
   Widget _buildMasteryCard(Skill skill) {
     // Logic: Mastery %
     final mastery = skill.mastery;
-    
+
     Color color;
     String title;
     String subtitle;
 
     if (mastery >= 80) {
-        color = const Color(0xFF10B981);
-        title = "Expert Mastery";
-        subtitle = "Excellent retention!";
+      color = const Color(0xFF10B981);
+      title = "Expert Mastery";
+      subtitle = "Excellent retention!";
     } else if (mastery >= 50) {
-        color = const Color(0xFFF59E0B);
-        title = "Developing Skill";
-        subtitle = "Keep practicing to improve.";
+      color = const Color(0xFFF59E0B);
+      title = "Developing Skill";
+      subtitle = "Keep practicing to improve.";
     } else {
-        color = const Color(0xFFEF4444);
-        title = "Needs Attention";
-        subtitle = "Skill is decaying or new.";
+      color = const Color(0xFFEF4444);
+      title = "Needs Attention";
+      subtitle = "Skill is decaying or new.";
     }
 
     return Container(
@@ -312,29 +336,23 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
     final now = DateTime.now();
     final difference = now.difference(skill.lastPracticed);
     final daysSince = difference.inDays;
-    
+
     return Column(
       children: [
         Row(
           children: [
             Expanded(
-              child: _buildStatCard(
-                'Last Practiced',
-                '$daysSince days ago',
-              ),
+              child: _buildStatCard('Last Practiced', '$daysSince days ago'),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                  stream: _historyStream,
-                  builder: (context, snapshot) {
-                      int count = 0;
-                      if (snapshot.hasData) count = snapshot.data!.docs.length;
-                      return _buildStatCard(
-                        'Total Sessions',
-                        '$count times',
-                      );
-                  }
+                stream: _historyStream,
+                builder: (context, snapshot) {
+                  int count = 0;
+                  if (snapshot.hasData) count = snapshot.data!.docs.length;
+                  return _buildStatCard('Total Sessions', '$count times');
+                },
               ),
             ),
           ],
@@ -352,22 +370,21 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                  stream: _historyStream,
-                  builder: (context, snapshot) {
-                      String avgDisplay = "N/A";
-                      if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-                          double totalScore = 0;
-                          for(var doc in snapshot.data!.docs) {
-                              totalScore += (doc.data() as Map<String, dynamic>)['score'] ?? 0;
-                          }
-                          avgDisplay = "${(totalScore / snapshot.data!.docs.length).toInt()}%";
-                      }
-                      
-                      return _buildStatCard(
-                        'Avg. Score',
-                        avgDisplay,
-                      );
+                stream: _historyStream,
+                builder: (context, snapshot) {
+                  String avgDisplay = "N/A";
+                  if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                    double totalScore = 0;
+                    for (var doc in snapshot.data!.docs) {
+                      totalScore +=
+                          (doc.data() as Map<String, dynamic>)['score'] ?? 0;
+                    }
+                    avgDisplay =
+                        "${(totalScore / snapshot.data!.docs.length).toInt()}%";
                   }
+
+                  return _buildStatCard('Avg. Score', avgDisplay);
+                },
               ),
             ),
           ],
@@ -422,11 +439,14 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
       builder: (context, snapshot) {
         if (snapshot.hasError) return Text('Error: ${snapshot.error}');
         if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
-        
+
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Text("No practice history yet.", style: TextStyle(color: Colors.grey));
+          return const Text(
+            "No practice history yet.",
+            style: TextStyle(color: Colors.grey),
+          );
         }
 
         final docs = snapshot.data!.docs;
@@ -439,7 +459,11 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
           itemBuilder: (context, index) {
             final data = docs[index].data() as Map<String, dynamic>;
             final score = (data['score'] ?? 0).toInt();
-            final date = (data['date'] as Timestamp?)?.toDate() ?? DateTime.now();
+            // Fallback for timestamp mapping.
+            final date =
+                (data['date'] as Timestamp?)?.toDate() ??
+                (data['timestamp'] as Timestamp?)?.toDate() ??
+                DateTime.now();
             final dateStr = DateFormat.yMMMd().format(date);
             final totalQ = data['totalQuestions'] ?? 0;
 
@@ -524,18 +548,65 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
             width: double.infinity,
             height: 56,
             child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => QuizScreen(skill: skill),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.bolt, color: Colors.white),
-              label: const Text(
-                'Start Practice Session',
-                style: TextStyle(
+              onPressed: _isStartingPractice
+                  ? null
+                  : () async {
+                      setState(() {
+                        _isStartingPractice = true;
+                      });
+
+                      try {
+                        final questions = await _quizService.generateQuizBatch(
+                          skillId: skill.id ?? '',
+                          skillTitle: skill.name,
+                          category: skill.category,
+                          userLevel: skill.difficultyLevel,
+                          mastery: skill.mastery,
+                        );
+
+                        if (!mounted) return;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => QuizScreen(
+                              skill: skill,
+                              initialQuestions: questions,
+                            ),
+                          ),
+                        );
+                      } catch (_) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Unable to generate quiz right now. Please try again.',
+                            ),
+                            backgroundColor: Color(0xFFEF4444),
+                          ),
+                        );
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            _isStartingPractice = false;
+                          });
+                        }
+                      }
+                    },
+              icon: _isStartingPractice
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.bolt, color: Colors.white),
+              label: Text(
+                _isStartingPractice
+                    ? 'Generating Quiz...'
+                    : 'Start Practice Session',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -554,7 +625,7 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
       ),
     );
   }
-  
+
   void _showDeleteDialog(BuildContext context, Skill skill) {
     showDialog(
       context: context,
@@ -570,9 +641,12 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
-                final user = Provider.of<AuthService>(context, listen: false).currentUser;
+                final user = Provider.of<AuthService>(
+                  context,
+                  listen: false,
+                ).currentUser;
                 if (user == null) return;
-                
+
                 try {
                   await SkillService().deleteSkill(user.uid, skill.id!);
                   if (context.mounted) {
@@ -595,15 +669,11 @@ class _SkillDetailsScreenState extends State<SkillDetailsScreen> {
                   }
                 }
               },
-              child: const Text(
-                'Delete',
-                style: TextStyle(color: Colors.red),
-              ),
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
             ),
           ],
         );
       },
     );
   }
-
 }

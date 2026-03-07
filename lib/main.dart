@@ -13,24 +13,18 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Load environment variables
   await dotenv.load(fileName: ".env");
-  
+
   // Initialize Firebase with options from environment variables
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
   await NotificationService.instance.initializeNotifications();
-  await NotificationService.instance.requestNotificationPermission();
-  await NotificationService.instance.scheduleDailyReminder();
-  await NotificationService.instance.scheduleWeeklyReport();
-  await NotificationService.instance.scheduleInactivityReminder();
   await PushMessagingService.instance.initialize();
-  
+
   runApp(
     MultiProvider(
       providers: [
@@ -56,7 +50,9 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: themeProvider.lightTheme,
           darkTheme: themeProvider.darkTheme,
-          themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          themeMode: themeProvider.isDarkMode
+              ? ThemeMode.dark
+              : ThemeMode.light,
           home: const AppStartRouter(),
         );
       },

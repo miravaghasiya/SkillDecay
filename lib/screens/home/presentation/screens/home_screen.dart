@@ -12,10 +12,11 @@ import '../../widgets/profile_avatar_button.dart';
 import '../../../profile/profile_screen.dart';
 import '../../../../core/animations/page_transition.dart';
 import '../../../../core/animations/entrance_animation.dart';
-import '../../../../core/animations/press_animation.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final ValueChanged<Skill>? onRecommendedSkillTap;
+
+  const HomeScreen({super.key, this.onRecommendedSkillTap});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -91,8 +92,9 @@ class _HomeScreenState extends State<HomeScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF1F5F9),
       body: user == null
           ? const Center(child: CircularProgressIndicator())
           : StreamBuilder<List<Skill>>(
@@ -135,7 +137,9 @@ class _HomeScreenState extends State<HomeScreen>
                                 photoUrl: user.photoURL,
                                 onTap: () => Navigator.push(
                                   context,
-                                  FadeSlidePageRoute(page: const ProfileScreen()),
+                                  FadeSlidePageRoute(
+                                    page: const ProfileScreen(),
+                                  ),
                                 ),
                               ),
                             ),
@@ -285,8 +289,9 @@ class _HomeScreenState extends State<HomeScreen>
                                 Icon(
                                   Icons.lightbulb_outline_rounded,
                                   size: 40,
-                                  color: const Color(0xFF6366F1)
-                                      .withOpacity(0.5),
+                                  color: const Color(
+                                    0xFF6366F1,
+                                  ).withOpacity(0.5),
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
@@ -308,17 +313,20 @@ class _HomeScreenState extends State<HomeScreen>
                       SliverPadding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              return RecommendationCardWidget(
-                                skill: recommendations[index],
-                                entranceAnimation: _staggerController,
-                                intervalStart: (0.55 + index * 0.06)
-                                    .clamp(0.0, 0.95),
-                              );
-                            },
-                            childCount: recommendations.length,
-                          ),
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            return RecommendationCardWidget(
+                              skill: recommendations[index],
+                              entranceAnimation: _staggerController,
+                              onTapSkill: widget.onRecommendedSkillTap,
+                              intervalStart: (0.55 + index * 0.06).clamp(
+                                0.0,
+                                0.95,
+                              ),
+                            );
+                          }, childCount: recommendations.length),
                         ),
                       ),
 

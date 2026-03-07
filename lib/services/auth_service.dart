@@ -2,13 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
+import 'notification_service.dart';
+import 'push_messaging_service.dart';
 
 class AuthService with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email'],
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
+  String? _lastNotificationSetupUserId;
 
   // User stream
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -25,6 +26,7 @@ class AuthService with ChangeNotifier {
       );
       if (result.user != null) {
         await _saveUserToFirestore(result.user!);
+        await configurePostLoginNotifications(result.user!);
       }
       return result.user;
     } on FirebaseAuthException catch (e) {
@@ -35,24 +37,29 @@ class AuthService with ChangeNotifier {
   }
 
   // Register with Email and Password
-  Future<User?> registerWithEmailPassword(String email, String password, String name) async {
+  Future<User?> registerWithEmailPassword(
+    String email,
+    String password,
+    String name,
+  ) async {
     try {
       print("Attempting to create user with email: $email");
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      
+
       User? user = result.user;
       if (user != null) {
         print("User created successfully: ${user.uid}");
         try {
           await user.updateDisplayName(name);
           await user.reload();
-          // Important: after reload, we should re-fetch if we need strict property consistency, 
+          // Important: after reload, we should re-fetch if we need strict property consistency,
           // but for firestore saving, the current user object is fine or we can use the updated one.
           // Let's pass the user with the new name.
-           await _saveUserToFirestore(user, name: name);
+          await _saveUserToFirestore(user, name: name);
+          await configurePostLoginNotifications(user);
         } catch (e) {
           print("Failed to update display name or save to firestore: $e");
         }
@@ -60,7 +67,8 @@ class AuthService with ChangeNotifier {
         print("User creation failed: Result user is null");
         throw FirebaseAuthException(
           code: 'user-null',
-          message: 'User creation returned null, possibly due to a service error.',
+          message:
+              'User creation returned null, possibly due to a service error.',
         );
       }
       return user;
@@ -77,13 +85,14 @@ class AuthService with ChangeNotifier {
   Future<User?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      
+
       if (googleUser == null) {
         // User canceled the sign-in
         return null;
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -91,17 +100,18 @@ class AuthService with ChangeNotifier {
 
       UserCredential result = await _auth.signInWithCredential(credential);
       User? user = result.user;
-      
+
       if (user != null) {
         await _saveUserToFirestore(user);
+        await configurePostLoginNotifications(user);
       }
-      
+
       return user;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     } catch (e) {
       print('Google Sign In Error: $e');
-      return null; 
+      return null;
     }
   }
 
@@ -113,15 +123,14 @@ class AuthService with ChangeNotifier {
 
       if (docSnapshot.exists) {
         // Update existing user (just last login)
-        await userDocRef.update({
-          'last_login': FieldValue.serverTimestamp(),
-        });
+        await userDocRef.update({'last_login': FieldValue.serverTimestamp()});
       } else {
         // Create new user entry
         await userDocRef.set({
           'uid': user.uid,
           'email': user.email,
-          'display_name': name ?? user.displayName, // Use provided name or existing
+          'display_name':
+              name ?? user.displayName, // Use provided name or existing
           'photo_url': user.photoURL,
           'created_at': FieldValue.serverTimestamp(),
           'last_login': FieldValue.serverTimestamp(),
@@ -129,7 +138,7 @@ class AuthService with ChangeNotifier {
       }
     } catch (e) {
       print("Error saving user to Firestore: $e");
-      // Decide if we want to block login if saving fails. 
+      // Decide if we want to block login if saving fails.
       // Usually better to log and allow, or rethrow if critical.
     }
   }
@@ -138,6 +147,21 @@ class AuthService with ChangeNotifier {
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();
+    _lastNotificationSetupUserId = null;
+  }
+
+  Future<void> configurePostLoginNotifications(User user) async {
+    if (_lastNotificationSetupUserId == user.uid) {
+      return;
+    }
+
+    await NotificationService.instance.requestNotificationPermission();
+    await NotificationService.instance.scheduleDailyReminder();
+    await NotificationService.instance.scheduleWeeklyReport();
+    await NotificationService.instance.scheduleInactivityReminder();
+
+    await PushMessagingService.instance.configureForSignedInUser();
+    _lastNotificationSetupUserId = user.uid;
   }
 
   // Error Handler

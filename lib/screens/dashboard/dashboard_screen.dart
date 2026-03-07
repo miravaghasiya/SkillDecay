@@ -5,7 +5,6 @@ import '../../services/skill_service.dart';
 import '../../models/skill.dart';
 import '../add_skill/add_skill_screen.dart';
 import '../skill_details/skill_details_screen.dart';
-import '../alerts/alerts_screen.dart';
 import '../home/presentation/screens/home_screen.dart';
 import '../practice/presentation/screens/practice_screen.dart';
 import '../skills/presentation/screens/skills_screen.dart';
@@ -25,11 +24,27 @@ class DashboardScreenState extends State<DashboardScreen> {
   String _searchQuery = '';
   String _selectedFilter = 'all'; // 'all', 'urgent', 'decaying', 'safe'
   bool _shouldOpenAddModal = false;
+  String? _practiceHighlightSkillId;
 
-  void setTab(int index, {bool openAddModal = false}) {
+  void setTab(
+    int index, {
+    bool openAddModal = false,
+    String? highlightSkillId,
+  }) {
     setState(() {
       _selectedNavIndex = index;
       _shouldOpenAddModal = openAddModal;
+      if (index == 1) {
+        _practiceHighlightSkillId =
+            highlightSkillId ?? _practiceHighlightSkillId;
+      }
+    });
+  }
+
+  void _openRecommendedSkillInPractice(Skill skill) {
+    setState(() {
+      _selectedNavIndex = 1;
+      _practiceHighlightSkillId = skill.id;
     });
   }
 
@@ -38,31 +53,26 @@ class DashboardScreenState extends State<DashboardScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final screens = [
-      const HomeScreen(), // 0 – Home
-      PracticeScreen(onAddSkill: () => setTab(2, openAddModal: true)), // 1 – Practice
+      HomeScreen(
+        onRecommendedSkillTap: _openRecommendedSkillInPractice,
+      ), // 0 – Home
+      PracticeScreen(
+        key: ValueKey<String>(
+          'practice-${_practiceHighlightSkillId ?? 'none'}',
+        ),
+        onAddSkill: () => setTab(2, openAddModal: true),
+        highlightSkillId: _practiceHighlightSkillId,
+      ), // 1 – Practice
       SkillsScreen(openAddModal: _shouldOpenAddModal), // 2 – Skills
       const ProgressScreen(), // 3 – Progress
       const CoachScreen(), // 4 – AI Coach
     ];
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: child, // Just a buttery cross-fade
-          );
-        },
-        child: KeyedSubtree(
-          key: ValueKey<int>(_selectedNavIndex),
-          child: screens[_selectedNavIndex],
-        ),
-      ),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF1F5F9),
+      body: IndexedStack(index: _selectedNavIndex, children: screens),
       bottomNavigationBar: _buildBottomNavBar(isDark),
     );
   }
@@ -137,8 +147,9 @@ class DashboardScreenState extends State<DashboardScreen> {
         ),
         builder: (context, snapshot) {
           final skills = snapshot.data ?? [];
-          final urgentCount =
-              skills.where((s) => _getSkillStatus(s) == 'urgent').length;
+          final urgentCount = skills
+              .where((s) => _getSkillStatus(s) == 'urgent')
+              .length;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,9 +166,7 @@ class DashboardScreenState extends State<DashboardScreen> {
               Text(
                 '$urgentCount skills need practice today',
                 style: TextStyle(
-                  color: isDark
-                      ? Colors.white54
-                      : const Color(0xFF64748B),
+                  color: isDark ? Colors.white54 : const Color(0xFF64748B),
                   fontSize: 14,
                   fontWeight: FontWeight.normal,
                 ),
@@ -180,8 +189,11 @@ class DashboardScreenState extends State<DashboardScreen> {
             icon: CircleAvatar(
               radius: 16,
               backgroundColor: const Color(0xFF6366F1).withOpacity(0.15),
-              child: const Icon(Icons.person,
-                  color: Color(0xFF6366F1), size: 20),
+              child: const Icon(
+                Icons.person,
+                color: Color(0xFF6366F1),
+                size: 20,
+              ),
             ),
             onPressed: () => setState(() => _selectedNavIndex = 4),
           ),
@@ -230,12 +242,15 @@ class DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildFilterChips(List<Skill> allSkills) {
-    final urgentCount =
-        allSkills.where((s) => _getSkillStatus(s) == 'urgent').length;
-    final decayingCount =
-        allSkills.where((s) => _getSkillStatus(s) == 'decaying').length;
-    final safeCount =
-        allSkills.where((s) => _getSkillStatus(s) == 'safe').length;
+    final urgentCount = allSkills
+        .where((s) => _getSkillStatus(s) == 'urgent')
+        .length;
+    final decayingCount = allSkills
+        .where((s) => _getSkillStatus(s) == 'decaying')
+        .length;
+    final safeCount = allSkills
+        .where((s) => _getSkillStatus(s) == 'safe')
+        .length;
 
     return SizedBox(
       height: 50,
@@ -247,7 +262,12 @@ class DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 8),
           _buildFilterChip('Urgent', 'urgent', Colors.red, urgentCount),
           const SizedBox(width: 8),
-          _buildFilterChip('Decaying', 'decaying', Colors.orange, decayingCount),
+          _buildFilterChip(
+            'Decaying',
+            'decaying',
+            Colors.orange,
+            decayingCount,
+          ),
           const SizedBox(width: 8),
           _buildFilterChip('Safe', 'safe', Colors.green, safeCount),
         ],
@@ -256,7 +276,11 @@ class DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildFilterChip(
-      String label, String value, Color? dotColor, int count) {
+    String label,
+    String value,
+    Color? dotColor,
+    int count,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _selectedFilter == value;
 
@@ -286,8 +310,8 @@ class DashboardScreenState extends State<DashboardScreen> {
         color: isSelected
             ? Colors.white
             : isDark
-                ? Colors.white70
-                : const Color(0xFF1E293B),
+            ? Colors.white70
+            : const Color(0xFF1E293B),
         fontWeight: FontWeight.w600,
         fontSize: 14,
       ),
@@ -298,8 +322,8 @@ class DashboardScreenState extends State<DashboardScreen> {
           color: isSelected
               ? const Color(0xFF6366F1)
               : isDark
-                  ? Colors.white12
-                  : const Color(0xFFE2E8F0),
+              ? Colors.white12
+              : const Color(0xFFE2E8F0),
         ),
       ),
     );
@@ -348,7 +372,9 @@ class DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: isDark
                             ? Colors.white.withOpacity(0.06)
@@ -443,7 +469,9 @@ class DashboardScreenState extends State<DashboardScreen> {
                     label: const Text(
                       'Practice Now',
                       style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w600),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6366F1),
@@ -459,7 +487,9 @@ class DashboardScreenState extends State<DashboardScreen> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF6366F1),
                       side: const BorderSide(
-                          color: Color(0xFF6366F1), width: 1.5),
+                        color: Color(0xFF6366F1),
+                        width: 1.5,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -467,7 +497,9 @@ class DashboardScreenState extends State<DashboardScreen> {
                     child: const Text(
                       'View Details',
                       style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w600),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
           ),
@@ -525,8 +557,7 @@ class DashboardScreenState extends State<DashboardScreen> {
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.transparent,
         selectedItemColor: const Color(0xFF6366F1),
-        unselectedItemColor:
-            isDark ? Colors.white38 : const Color(0xFF94A3B8),
+        unselectedItemColor: isDark ? Colors.white38 : const Color(0xFF94A3B8),
         selectedFontSize: 11,
         unselectedFontSize: 11,
         elevation: 0,
@@ -613,9 +644,7 @@ class DashboardScreenState extends State<DashboardScreen> {
   void _showSkillDetails(BuildContext context, Skill skill) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => SkillDetailsScreen(skill: skill),
-      ),
+      MaterialPageRoute(builder: (context) => SkillDetailsScreen(skill: skill)),
     );
   }
 }

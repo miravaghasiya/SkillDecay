@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'auth_service.dart';
 import 'preferences_service.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/login/login_screen.dart';
@@ -26,22 +27,23 @@ class AppStartRouter extends StatelessWidget {
         // Connection state active means we have an initial value or updates
         if (snapshot.connectionState == ConnectionState.active) {
           final User? user = snapshot.data;
-          
+
           if (user == null) {
             // If user is not logged in, show the LoginScreen
             return const LoginScreen();
           } else {
+            Future.microtask(() {
+              context.read<AuthService>().configurePostLoginNotifications(user);
+            });
             // If user is logged in, show the DashboardScreen
             return const DashboardScreen();
           }
         }
-        
+
         // Show loading indicator while checking auth state
         return const Scaffold(
           body: Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF6366F1),
-            ),
+            child: CircularProgressIndicator(color: Color(0xFF6366F1)),
           ),
         );
       },

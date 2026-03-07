@@ -19,11 +19,15 @@ class PushMessagingService {
   static final PushMessagingService instance = PushMessagingService._();
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  bool _isInitialized = false;
+  String? _lastConfiguredUserId;
 
   Future<void> initialize() async {
+    if (_isInitialized) {
+      return;
+    }
+
     await _messaging.setAutoInitEnabled(true);
-    await requestPushPermission();
-    await getDeviceToken();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final title = message.notification?.title ?? 'New Alert';
@@ -32,38 +36,63 @@ class PushMessagingService {
       debugPrint('FCM: Debug - Message received: $title - $body');
 
       final context = NotificationService.navigatorKey.currentContext;
-      
+
       if (context != null) {
         // Use the beautiful Top Banner Notification for both Mobile and Web foreground
         NotificationBannerService.show(
           context,
           title: title,
           message: body,
-          type: NotificationType.reminder, // You can parse payload to change types dynamically
+          type: NotificationType
+              .reminder, // You can parse payload to change types dynamically
           onTap: () {
-            NotificationService.navigatorKey.currentState
-                ?.push(MaterialPageRoute(builder: (_) => const PracticeScreen()));
+            NotificationService.navigatorKey.currentState?.push(
+              MaterialPageRoute(builder: (_) => const PracticeScreen()),
+            );
           },
         );
         debugPrint('FCM: Debug - Notification displayed (Top Banner)');
       } else {
         // Fallback to local notification plugin if context isn't ready (mostly for mobile background transition)
         if (!kIsWeb) {
-          NotificationService.instance.showInstantNotification(title, body, payload: 'practice');
-          debugPrint('FCM: Debug - Notification displayed (Local Notification Fallback)');
+          NotificationService.instance.showInstantNotification(
+            title,
+            body,
+            payload: 'practice',
+          );
+          debugPrint(
+            'FCM: Debug - Notification displayed (Local Notification Fallback)',
+          );
         }
       }
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint('FCM: Debug - Notification clicked. Navigating...');
-      NotificationService.navigatorKey.currentState
-          ?.push(MaterialPageRoute(builder: (_) => const PracticeScreen()));
+      NotificationService.navigatorKey.currentState?.push(
+        MaterialPageRoute(builder: (_) => const PracticeScreen()),
+      );
     });
 
     if (!kIsWeb) {
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     }
+
+    _isInitialized = true;
+  }
+
+  Future<void> configureForSignedInUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
+    }
+    if (_lastConfiguredUserId == user.uid) {
+      return;
+    }
+
+    await requestPushPermission();
+    await getDeviceToken();
+    _lastConfiguredUserId = user.uid;
   }
 
   Future<void> requestPushPermission() async {
@@ -77,7 +106,9 @@ class PushMessagingService {
       criticalAlert: false,
       provisional: false,
     );
-    debugPrint('FCM: Debug - Permission granted: ${settings.authorizationStatus}');
+    debugPrint(
+      'FCM: Debug - Permission granted: ${settings.authorizationStatus}',
+    );
 
     if (!kIsWeb && Platform.isAndroid) {
       await _messaging.setForegroundNotificationPresentationOptions(
@@ -93,11 +124,13 @@ class PushMessagingService {
       debugPrint('FCM: Debug - Generating token...');
       final vapidKey = dotenv.env['FCM_VAPID_KEY'] ?? '';
       final token = await _messaging.getToken(
-        vapidKey: vapidKey.isNotEmpty ? vapidKey : "BLDP4GIxdpH5um7Tng4HlLIVsM78daIneA4ReNeSa7xA0OlaIaHFrlrTIRIT7gyXdiFRya3uDfW96RfBY19Ul9s",
+        vapidKey: vapidKey.isNotEmpty
+            ? vapidKey
+            : "BLDP4GIxdpH5um7Tng4HlLIVsM78daIneA4ReNeSa7xA0OlaIaHFrlrTIRIT7gyXdiFRya3uDfW96RfBY19Ul9s",
       );
       if (token != null) {
         debugPrint('FCM: Debug - Token generated: $token');
-        
+
         // Ensure token refresh is handled
         _messaging.onTokenRefresh.listen((newToken) async {
           debugPrint('FCM: Debug - Token refreshed: $newToken');
@@ -116,10 +149,9 @@ class PushMessagingService {
   Future<void> _saveTokenToFirestore(String token) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .update({'fcm_token': token});
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update(
+        {'fcm_token': token},
+      );
       debugPrint('FCM: Debug - Token saved to Firestore for user: ${user.uid}');
     }
   }

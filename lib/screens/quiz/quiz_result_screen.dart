@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../models/quiz_question.dart';
+import '../../models/question_model.dart';
 
 class QuizResultScreen extends StatelessWidget {
   final int score;
   final int totalQuestions;
-  final List<QuizQuestion> questions;
+  final List<QuestionModel> questions;
   final Map<int, int> userAnswers; // questionIndex -> selectedOptionIndex
 
   const QuizResultScreen({
@@ -17,13 +17,20 @@ class QuizResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percentage = totalQuestions > 0 ? (score / totalQuestions * 100).toInt() : 0;
-    Color scoreColor = percentage >= 80 ? Colors.green : (percentage >= 50 ? Colors.orange : Colors.red);
+    final percentage = totalQuestions > 0
+        ? (score / totalQuestions * 100).toInt()
+        : 0;
+    Color scoreColor = percentage >= 80
+        ? Colors.green
+        : (percentage >= 50 ? Colors.orange : Colors.red);
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Quiz Results', style: TextStyle(color: Color(0xFF1E293B))),
+        title: const Text(
+          'Quiz Results',
+          style: TextStyle(color: Color(0xFF1E293B)),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -88,7 +95,9 @@ class QuizResultScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey[200]!),
                     borderRadius: BorderRadius.circular(12),
-                    color: isCorrect ? Colors.green.withOpacity(0.05) : Colors.red.withOpacity(0.05),
+                    color: isCorrect
+                        ? Colors.green.withOpacity(0.05)
+                        : Colors.red.withOpacity(0.05),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,17 +122,32 @@ class QuizResultScreen extends StatelessWidget {
                           child: Row(
                             children: [
                               Icon(
-                                isCorrectOption ? Icons.check_circle : (isUserSelection ? Icons.cancel : Icons.radio_button_unchecked),
+                                isCorrectOption
+                                    ? Icons.check_circle
+                                    : (isUserSelection
+                                          ? Icons.cancel
+                                          : Icons.radio_button_unchecked),
                                 size: 18,
-                                color: isCorrectOption ? Colors.green : (isUserSelection ? Colors.red : Colors.grey),
+                                color: isCorrectOption
+                                    ? Colors.green
+                                    : (isUserSelection
+                                          ? Colors.red
+                                          : Colors.grey),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   text,
                                   style: TextStyle(
-                                    color: isCorrectOption ? Colors.green : (isUserSelection ? Colors.red : const Color(0xFF1E293B)),
-                                    fontWeight: isCorrectOption || isUserSelection ? FontWeight.w500 : FontWeight.normal,
+                                    color: isCorrectOption
+                                        ? Colors.green
+                                        : (isUserSelection
+                                              ? Colors.red
+                                              : const Color(0xFF1E293B)),
+                                    fontWeight:
+                                        isCorrectOption || isUserSelection
+                                        ? FontWeight.w500
+                                        : FontWeight.normal,
                                   ),
                                 ),
                               ),
@@ -159,7 +183,14 @@ class QuizResultScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: const Text('Back to Skill', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Back to Skill',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],

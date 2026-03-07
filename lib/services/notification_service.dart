@@ -4,15 +4,18 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:math';
 import '../screens/practice/presentation/screens/practice_screen.dart';
 
 class NotificationService {
   NotificationService._internal();
   static final NotificationService instance = NotificationService._internal();
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
-  final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
 
   static const int _dailyReminderId = 1001;
   static const int _inactivityId = 1002;
@@ -24,8 +27,13 @@ class NotificationService {
       return;
     }
     tz.initializeTimeZones();
-    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initSettings = InitializationSettings(android: androidSettings, iOS: null, macOS: null);
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: null,
+      macOS: null,
+    );
     await _plugin.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
@@ -45,7 +53,10 @@ class NotificationService {
     if (kIsWeb) {
       return true;
     }
-    final androidImpl = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    final androidImpl = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (androidImpl != null) {
       final enabled = await androidImpl.areNotificationsEnabled();
       if (enabled == true) {
@@ -66,21 +77,48 @@ class NotificationService {
   }
 
   Future<void> _ensureChannels() async {
-    final androidImpl = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    final androidImpl = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (androidImpl == null) return;
     final channels = <AndroidNotificationChannel>[
-      const AndroidNotificationChannel('daily_reminders_channel', 'Daily Reminders', importance: Importance.high),
-      const AndroidNotificationChannel('decay_alerts_channel', 'Skill Decay Alerts', importance: Importance.high),
-      const AndroidNotificationChannel('inactivity_channel', 'Inactivity Reminders', importance: Importance.high),
-      const AndroidNotificationChannel('weekly_reports_channel', 'Weekly Reports', importance: Importance.high),
-      const AndroidNotificationChannel('instant_channel', 'Instant Alerts', importance: Importance.high),
+      const AndroidNotificationChannel(
+        'daily_reminders_channel',
+        'Daily Reminders',
+        importance: Importance.high,
+      ),
+      const AndroidNotificationChannel(
+        'decay_alerts_channel',
+        'Skill Decay Alerts',
+        importance: Importance.high,
+      ),
+      const AndroidNotificationChannel(
+        'inactivity_channel',
+        'Inactivity Reminders',
+        importance: Importance.high,
+      ),
+      const AndroidNotificationChannel(
+        'weekly_reports_channel',
+        'Weekly Reports',
+        importance: Importance.high,
+      ),
+      const AndroidNotificationChannel(
+        'instant_channel',
+        'Instant Alerts',
+        importance: Importance.high,
+      ),
     ];
     for (final ch in channels) {
       await androidImpl.createNotificationChannel(ch);
     }
   }
 
-  Future<void> showInstantNotification(String title, String message, {String? payload}) async {
+  Future<void> showInstantNotification(
+    String title,
+    String message, {
+    String? payload,
+  }) async {
     if (kIsWeb) {
       return;
     }
@@ -92,7 +130,13 @@ class NotificationService {
         priority: Priority.high,
       ),
     );
-    await _plugin.show(_instantId, title, message, details, payload: payload ?? 'practice');
+    await _plugin.show(
+      _instantId,
+      title,
+      message,
+      details,
+      payload: payload ?? 'practice',
+    );
   }
 
   Future<void> scheduleDailyReminder({int hour = 20, int minute = 0}) async {
@@ -108,14 +152,12 @@ class NotificationService {
         priority: Priority.high,
       ),
     );
-    await _plugin.zonedSchedule(
-      _dailyReminderId,
-      'Daily Practice Reminder',
-      'Your brain is waiting. Practice one of your skills today.',
-      scheduled,
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+    await _zonedScheduleSafe(
+      id: _dailyReminderId,
+      title: 'Daily Practice Reminder',
+      body: 'Your brain is waiting. Practice one of your skills today.',
+      scheduled: scheduled,
+      details: details,
       matchDateTimeComponents: DateTimeComponents.time,
       payload: 'practice',
     );
@@ -128,7 +170,11 @@ class NotificationService {
     await _plugin.cancel(_dailyReminderId);
   }
 
-  Future<void> scheduleDecayAlert(String skillName, {int hour = 9, int minute = 0}) async {
+  Future<void> scheduleDecayAlert(
+    String skillName, {
+    int hour = 9,
+    int minute = 0,
+  }) async {
     if (kIsWeb) {
       return;
     }
@@ -144,26 +190,35 @@ class NotificationService {
         priority: Priority.high,
       ),
     );
-    await _plugin.zonedSchedule(
-      id,
-      'Skill Decay Alert',
-      'Your $skillName skill is starting to fade. A quick practice will refresh it.',
-      scheduled,
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+    await _zonedScheduleSafe(
+      id: id,
+      title: 'Skill Decay Alert',
+      body:
+          'Your $skillName skill is starting to fade. A quick practice will refresh it.',
+      scheduled: scheduled,
+      details: details,
       matchDateTimeComponents: DateTimeComponents.dateAndTime,
       payload: 'practice',
     );
   }
 
-  Future<void> scheduleInactivityReminder({int days = 4, int hour = 10, int minute = 0}) async {
+  Future<void> scheduleInactivityReminder({
+    int days = 4,
+    int hour = 10,
+    int minute = 0,
+  }) async {
     if (kIsWeb) {
       return;
     }
     final now = tz.TZDateTime.now(tz.local);
     final target = now.add(Duration(days: days));
-    final scheduled = _atLocal(target.year, target.month, target.day, hour, minute);
+    final scheduled = _atLocal(
+      target.year,
+      target.month,
+      target.day,
+      hour,
+      minute,
+    );
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         'inactivity_channel',
@@ -178,14 +233,12 @@ class NotificationService {
       'System warning: Human has stopped learning.',
     ];
     final message = messages[Random().nextInt(messages.length)];
-    await _plugin.zonedSchedule(
-      _inactivityId,
-      'We miss you',
-      message,
-      scheduled,
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+    await _zonedScheduleSafe(
+      id: _inactivityId,
+      title: 'We miss you',
+      body: message,
+      scheduled: scheduled,
+      details: details,
       matchDateTimeComponents: DateTimeComponents.dateAndTime,
       payload: 'practice',
     );
@@ -216,22 +269,69 @@ class NotificationService {
         priority: Priority.high,
       ),
     );
-    await _plugin.zonedSchedule(
-      _weeklyReportId,
-      'Weekly Learning Report',
-      'This week you practiced {X} skills. Keep the streak alive.',
-      scheduled,
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+    await _zonedScheduleSafe(
+      id: _weeklyReportId,
+      title: 'Weekly Learning Report',
+      body: 'This week you practiced {X} skills. Keep the streak alive.',
+      scheduled: scheduled,
+      details: details,
       matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
       payload: 'practice',
     );
   }
 
+  Future<void> _zonedScheduleSafe({
+    required int id,
+    required String title,
+    required String body,
+    required tz.TZDateTime scheduled,
+    required NotificationDetails details,
+    DateTimeComponents? matchDateTimeComponents,
+    String? payload,
+  }) async {
+    try {
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduled,
+        details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: matchDateTimeComponents,
+        payload: payload,
+      );
+    } on PlatformException catch (e) {
+      if (e.code != 'exact_alarms_not_permitted') {
+        rethrow;
+      }
+
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduled,
+        details,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: matchDateTimeComponents,
+        payload: payload,
+      );
+    }
+  }
+
   tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
     final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
     if (scheduled.isBefore(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
     }
@@ -240,10 +340,24 @@ class NotificationService {
 
   tz.TZDateTime _nextSundayAt(int hour, int minute) {
     final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
     while (scheduled.weekday != DateTime.sunday || scheduled.isBefore(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
-      scheduled = tz.TZDateTime(tz.local, scheduled.year, scheduled.month, scheduled.day, hour, minute);
+      scheduled = tz.TZDateTime(
+        tz.local,
+        scheduled.year,
+        scheduled.month,
+        scheduled.day,
+        hour,
+        minute,
+      );
     }
     return scheduled;
   }
