@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/notification_banner.dart';
 import 'notification_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../screens/practice/presentation/screens/practice_screen.dart';
 
 @pragma('vm:entry-point')
@@ -90,8 +91,9 @@ class PushMessagingService {
   Future<void> getDeviceToken() async {
     try {
       debugPrint('FCM: Debug - Generating token...');
+      final vapidKey = dotenv.env['FCM_VAPID_KEY'] ?? '';
       final token = await _messaging.getToken(
-        vapidKey: "BLDP4GIxdpH5um7Tng4HlLIVsM78daIneA4ReNeSa7xA0OlaIaHFrlrTIRIT7gyXdiFRya3uDfW96RfBY19Ul9s",
+        vapidKey: vapidKey.isNotEmpty ? vapidKey : "BLDP4GIxdpH5um7Tng4HlLIVsM78daIneA4ReNeSa7xA0OlaIaHFrlrTIRIT7gyXdiFRya3uDfW96RfBY19Ul9s",
       );
       if (token != null) {
         debugPrint('FCM: Debug - Token generated: $token');
