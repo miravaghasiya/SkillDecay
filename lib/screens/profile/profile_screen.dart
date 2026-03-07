@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/theme_provider.dart';
+import '../../services/push_messaging_service.dart';
+import '../../widgets/notification_banner.dart';
 import '../edit_profile/edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -153,8 +155,23 @@ class _ProfileScreenState extends State<ProfileScreen>
                       child: user?.photoURL != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(24),
-                              child: Image.network(user!.photoURL!,
-                                  fit: BoxFit.cover))
+                              child: Image.network(
+                                user!.photoURL!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Center(
+                                    child: Text(
+                                      initial,
+                                      style: const TextStyle(
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
                           : Center(
                               child: Text(
                                 initial,
@@ -329,6 +346,25 @@ class _ProfileScreenState extends State<ProfileScreen>
                         const SnackBar(
                             content: Text('Help & Support coming soon')),
                       ),
+                    ),
+                    _divider(isDark),
+                    _buildTile(
+                      isDark: isDark,
+                      icon: Icons.notifications_active_rounded,
+                      iconColor: const Color(0xFFF43F5E),
+                      title: 'Test FCM Notification',
+                      subtitle: 'Generate and print web token',
+                      trailing: Icon(Icons.touch_app_rounded, color: isDark ? Colors.white38 : const Color(0xFF94A3B8)),
+                      onTap: () async {
+                        NotificationBannerService.show(
+                          context,
+                          title: 'Connecting to FCM',
+                          message: 'Requesting permission & generating web token...',
+                          type: NotificationType.success,
+                        );
+                        await PushMessagingService.instance.requestPushPermission();
+                        await PushMessagingService.instance.getDeviceToken();
+                      },
                     ),
                   ],
                 ),

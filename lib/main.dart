@@ -7,6 +7,8 @@ import 'services/auth_service.dart';
 import 'services/theme_provider.dart';
 import 'services/preferences_service.dart';
 import 'services/app_start_router.dart';
+import 'services/notification_service.dart';
+import 'services/push_messaging_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -22,6 +24,12 @@ void main() async {
 
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
+  await NotificationService.instance.initializeNotifications();
+  await NotificationService.instance.requestNotificationPermission();
+  await NotificationService.instance.scheduleDailyReminder();
+  await NotificationService.instance.scheduleWeeklyReport();
+  await NotificationService.instance.scheduleInactivityReminder();
+  await PushMessagingService.instance.initialize();
   
   runApp(
     MultiProvider(
@@ -43,6 +51,7 @@ class MyApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
+          navigatorKey: NotificationService.navigatorKey,
           title: 'Micro Skill Decay Detector',
           debugShowCheckedModeBanner: false,
           theme: themeProvider.lightTheme,

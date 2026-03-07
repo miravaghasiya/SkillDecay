@@ -311,6 +311,58 @@ app.post("/save-session", async (req, res) => {
   }
 });
 
+/* =========================================================
+   SEND NOTIFICATION
+========================================================= */
+
+app.post("/send-notification", async (req, res) => {
+  try {
+    const { userId, title, body, data } = req.body;
+
+    if (!userId || !title || !body) {
+      return res.status(400).json({ error: "Missing userId, title, or body" });
+    }
+
+    if (!db) {
+      return res.status(500).json({ error: "Firebase not initialized" });
+    }
+
+    // Look up user's FCM token
+    const userDoc = await db.collection("users").doc(userId).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const userData = userDoc.data();
+    const fcmToken = userData.fcm_token;
+
+    if (!fcmToken) {
+      return res.status(400).json({ error: "User has no FCM token registered" });
+    }
+
+    // Construct the payload
+    const message = {
+      notification: {
+        title,
+        body
+      },
+      data: data || {},
+      token: fcmToken
+    };
+
+    // Send using admin SDK
+    const response = await admin.messaging().send(message);
+
+    console.log(`✅ Successfully sent notification to user ${userId}. Msg ID: ${response}`);
+    res.json({ success: true, messageId: response });
+
+  } catch (e) {
+    console.error("NOTIFICATION ERROR:", e.message);
+    res.status(500).json({ error: "Failed to send notification" });
+  }
+});
+
 /* ========================================================= */
 
 const PORT = process.env.PORT || 3000;

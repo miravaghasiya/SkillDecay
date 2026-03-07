@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'skill_service.dart';
+import 'notification_service.dart';
 
 class PracticeService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -26,6 +27,8 @@ class PracticeService {
           mastery: newMastery ?? skill.mastery,
         );
         await _skillService.updateSkill(userId, skillId, updatedSkill);
+        await NotificationService.instance.cancelDailyReminder();
+        await NotificationService.instance.scheduleDecayAlert(updatedSkill.name);
       }
 
       // 2. Create a practice session record

@@ -75,7 +75,22 @@ class _ProfileAvatarButtonState extends State<ProfileAvatarButton>
           child: widget.photoUrl != null
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: Image.network(widget.photoUrl!, fit: BoxFit.cover),
+                  child: Image.network(
+                    widget.photoUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Center(
+                        child: Text(
+                          initial,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 )
               : Center(
                   child: Text(
