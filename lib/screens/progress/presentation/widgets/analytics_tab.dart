@@ -4,7 +4,6 @@ import '../../../../models/skill.dart';
 import '../../loading/shimmer_loader.dart';
 import '../../../../core/animations/entrance_animation.dart';
 
-
 class AnalyticsTab extends StatefulWidget {
   final List<Skill> skills;
 
@@ -40,9 +39,12 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   String get _practiceTime {
     final mins = widget.skills.fold<int>(0, (acc, s) {
       switch (s.difficultyLevel) {
-        case 'Beginner': return acc + 5;
-        case 'Advanced': return acc + 20;
-        default: return acc + 10;
+        case 'Beginner':
+          return acc + 5;
+        case 'Advanced':
+          return acc + 20;
+        default:
+          return acc + 10;
       }
     });
     if (mins >= 60) return '${(mins / 60).toStringAsFixed(1)}h';
@@ -68,8 +70,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   double get _consistencyScore {
     if (widget.skills.isEmpty) return 0;
     final practiced = widget.skills
-        .where((s) =>
-            DateTime.now().difference(s.lastPracticed).inDays <= 7)
+        .where((s) => DateTime.now().difference(s.lastPracticed).inDays <= 7)
         .length;
     return (practiced / widget.skills.length).clamp(0.0, 1.0);
   }
@@ -94,11 +95,18 @@ class _AnalyticsTabState extends State<AnalyticsTab>
 
   String get _insightText {
     if (widget.skills.isEmpty) return 'Add skills to see insights.';
-    final d = DateTime.now().difference(widget.skills
-        .reduce((a, b) => a.lastPracticed.isAfter(b.lastPracticed) ? a : b)
-        .lastPracticed).inDays;
+    final d = DateTime.now()
+        .difference(
+          widget.skills
+              .reduce(
+                (a, b) => a.lastPracticed.isAfter(b.lastPracticed) ? a : b,
+              )
+              .lastPracticed,
+        )
+        .inDays;
     if (d == 0) return 'Great — you practiced today! Your streak is building.';
-    if (d <= 2) return 'Based on your activity — keep going, you\'re consistent!';
+    if (d <= 2)
+      return 'Based on your activity — keep going, you\'re consistent!';
     return 'It\'s been $d days since last practice. Time to jump back in!';
   }
 
@@ -107,6 +115,37 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final statsCardExtent = textScale > 1.15
+        ? 134.0
+        : (screenWidth < 380 ? 126.0 : 118.0);
+    final stats = [
+      (
+        label: 'Total Sessions',
+        value: '$_totalSessions',
+        icon: Icons.bolt_rounded,
+        color: const Color(0xFF6366F1),
+      ),
+      (
+        label: 'Practice Time',
+        value: _practiceTime,
+        icon: Icons.timer_outlined,
+        color: const Color(0xFF8B5CF6),
+      ),
+      (
+        label: 'Best Day',
+        value: _bestDay,
+        icon: Icons.star_rounded,
+        color: const Color(0xFFF59E0B),
+      ),
+      (
+        label: 'Avg Mastery',
+        value: _avgMastery.toStringAsFixed(1),
+        icon: Icons.trending_up_rounded,
+        color: const Color(0xFF10B981),
+      ),
+    ];
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -121,47 +160,27 @@ class _AnalyticsTabState extends State<AnalyticsTab>
             animationController: _ctrl,
             intervalStart: 0.0,
             intervalEnd: 0.5,
-            child: GridView.count(
+            child: GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.6,
-              children: [
-                _StatCard(
-                  label: 'Total Sessions',
-                  value: '$_totalSessions',
-                  icon: Icons.bolt_rounded,
-                  color: const Color(0xFF6366F1),
+              itemCount: stats.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                mainAxisExtent: statsCardExtent,
+              ),
+              itemBuilder: (context, index) {
+                final item = stats[index];
+                return _StatCard(
+                  label: item.label,
+                  value: item.value,
+                  icon: item.icon,
+                  color: item.color,
                   isDark: isDark,
                   controller: _ctrl,
-                ),
-                _StatCard(
-                  label: 'Practice Time',
-                  value: _practiceTime,
-                  icon: Icons.timer_outlined,
-                  color: const Color(0xFF8B5CF6),
-                  isDark: isDark,
-                  controller: _ctrl,
-                ),
-                _StatCard(
-                  label: 'Best Day',
-                  value: _bestDay,
-                  icon: Icons.star_rounded,
-                  color: const Color(0xFFF59E0B),
-                  isDark: isDark,
-                  controller: _ctrl,
-                ),
-                _StatCard(
-                  label: 'Avg Mastery',
-                  value: _avgMastery.toStringAsFixed(1),
-                  icon: Icons.trending_up_rounded,
-                  color: const Color(0xFF10B981),
-                  isDark: isDark,
-                  controller: _ctrl,
-                ),
-              ],
+                );
+              },
             ),
           ),
 
@@ -184,12 +203,16 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                 ),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                    color: const Color(0xFF6366F1).withOpacity(0.2)),
+                  color: const Color(0xFF6366F1).withOpacity(0.2),
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.lightbulb_outline_rounded,
-                      color: Color(0xFF6366F1), size: 20),
+                  const Icon(
+                    Icons.lightbulb_outline_rounded,
+                    color: Color(0xFF6366F1),
+                    size: 20,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -258,8 +281,6 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   }
 }
 
-
-
 // ─── Stat card ────────────────────────────────────────────────────────────────
 
 class _StatCard extends StatelessWidget {
@@ -282,7 +303,7 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -295,31 +316,39 @@ class _StatCard extends StatelessWidget {
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, size: 14, color: color),
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 14, color: color),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.fade,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
+              ),
             ),
           ),
+          const SizedBox(height: 2),
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 11,
               color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
@@ -351,8 +380,8 @@ class _ConsistencyCard extends StatelessWidget {
     final color = score >= 0.7
         ? const Color(0xFF10B981)
         : score >= 0.4
-            ? const Color(0xFFF59E0B)
-            : const Color(0xFFEF4444);
+        ? const Color(0xFFF59E0B)
+        : const Color(0xFFEF4444);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -374,7 +403,10 @@ class _ConsistencyCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 3,
+                ),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(20),
@@ -407,7 +439,8 @@ class _ConsistencyCard extends StatelessWidget {
                 value: score * controller.value,
                 minHeight: 8,
                 backgroundColor: isDark
-                    ? Colors.white12 : const Color(0xFFE2E8F0),
+                    ? Colors.white12
+                    : const Color(0xFFE2E8F0),
                 valueColor: AlwaysStoppedAnimation<Color>(color),
               ),
             ),
@@ -465,10 +498,11 @@ class _BarChartCard extends StatelessWidget {
                 children: List.generate(7, (i) {
                   final count = sessionsByDay[i];
                   final frac = maxVal == 0 ? 0.0 : count / maxVal;
-                  final barH =
-                      (frac * 110 * controller.value).clamp(4.0, 110.0);
-                  final isToday =
-                      DateTime.now().weekday % 7 == i;
+                  final barH = (frac * 110 * controller.value).clamp(
+                    4.0,
+                    110.0,
+                  );
+                  final isToday = DateTime.now().weekday % 7 == i;
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -499,23 +533,22 @@ class _BarChartCard extends StatelessWidget {
                                       const Color(0xFF8B5CF6),
                                     ]
                                   : count > 0
-                                      ? [
-                                          const Color(0xFF6366F1)
-                                              .withOpacity(0.4),
-                                          const Color(0xFF8B5CF6)
-                                              .withOpacity(0.4),
-                                        ]
-                                      : [
-                                          isDark
-                                              ? const Color(0xFF334155)
-                                              : const Color(0xFFE2E8F0),
-                                          isDark
-                                              ? const Color(0xFF334155)
-                                              : const Color(0xFFE2E8F0),
-                                        ],
+                                  ? [
+                                      const Color(0xFF6366F1).withOpacity(0.4),
+                                      const Color(0xFF8B5CF6).withOpacity(0.4),
+                                    ]
+                                  : [
+                                      isDark
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFE2E8F0),
+                                      isDark
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFE2E8F0),
+                                    ],
                             ),
                             borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(6)),
+                              top: Radius.circular(6),
+                            ),
                           ),
                         ),
                       ),
@@ -529,16 +562,16 @@ class _BarChartCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: _dayLabels
-                .map((d) => Text(
-                      d,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: isDark
-                            ? Colors.white38
-                            : const Color(0xFF94A3B8),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ))
+                .map(
+                  (d) => Text(
+                    d,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                )
                 .toList(),
           ),
         ],
@@ -561,8 +594,12 @@ class _CategoryDistCard extends StatelessWidget {
   });
 
   static const _colors = [
-    Color(0xFF6366F1), Color(0xFF10B981), Color(0xFFF59E0B),
-    Color(0xFFEF4444), Color(0xFF8B5CF6), Color(0xFF06B6D4),
+    Color(0xFF6366F1),
+    Color(0xFF10B981),
+    Color(0xFFF59E0B),
+    Color(0xFFEF4444),
+    Color(0xFF8B5CF6),
+    Color(0xFF06B6D4),
   ];
 
   @override
@@ -600,10 +637,13 @@ class _CategoryDistCard extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                              color: color, shape: BoxShape.circle)),
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -621,7 +661,9 @@ class _CategoryDistCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF1E293B),
                         ),
                       ),
                     ],

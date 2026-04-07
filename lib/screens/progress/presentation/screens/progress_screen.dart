@@ -6,7 +6,6 @@ import '../../../../services/skill_service.dart';
 import '../../loading/shimmer_loader.dart';
 import '../widgets/analytics_tab.dart';
 import '../widgets/rewards_tab.dart';
-import '../widgets/study_plan_tab.dart';
 import '../../../../core/animations/entrance_animation.dart';
 
 class ProgressScreen extends StatefulWidget {
@@ -24,7 +23,6 @@ class _ProgressScreenState extends State<ProgressScreen>
   static const List<({String label, IconData icon})> _tabs = [
     (label: 'Analytics', icon: Icons.bar_chart_rounded),
     (label: 'Rewards', icon: Icons.emoji_events_outlined),
-    (label: 'Study Plan', icon: Icons.calendar_today_outlined),
   ];
 
   @override
@@ -47,12 +45,12 @@ class _ProgressScreenState extends State<ProgressScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final user =
-        Provider.of<AuthService>(context, listen: false).currentUser;
+    final user = Provider.of<AuthService>(context, listen: false).currentUser;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF1F5F9),
       body: user == null
           ? const Center(child: CircularProgressIndicator())
           : StreamBuilder<List<Skill>>(
@@ -89,7 +87,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Your analytics, rewards, and study plans',
+                                'Your analytics and rewards',
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: isDark
@@ -133,15 +131,15 @@ class _ProgressScreenState extends State<ProgressScreen>
                               switchOutCurve: Curves.easeInOut,
                               transitionBuilder: (child, anim) =>
                                   FadeTransition(
-                                opacity: anim,
-                                child: SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(0.04, 0),
-                                    end: Offset.zero,
-                                  ).animate(anim),
-                                  child: child,
-                                ),
-                              ),
+                                    opacity: anim,
+                                    child: SlideTransition(
+                                      position: Tween<Offset>(
+                                        begin: const Offset(0.04, 0),
+                                        end: Offset.zero,
+                                      ).animate(anim),
+                                      child: child,
+                                    ),
+                                  ),
                               child: _buildTab(skills),
                             ),
                     ),
@@ -158,10 +156,11 @@ class _ProgressScreenState extends State<ProgressScreen>
         return AnalyticsTab(key: const ValueKey('analytics'), skills: skills);
       case 1:
         return RewardsTab(key: const ValueKey('rewards'), skills: skills);
-      case 2:
-        return StudyPlanTab(key: const ValueKey('studyplan'), skills: skills);
       default:
-        return const SizedBox.shrink();
+        return AnalyticsTab(
+          key: const ValueKey('analytics-default'),
+          skills: skills,
+        );
     }
   }
 
@@ -176,8 +175,7 @@ class _ProgressScreenState extends State<ProgressScreen>
           const ShimmerCard(height: 80),
           const SizedBox(height: 16),
           const ShimmerChart(),
-          const SizedBox(height: 16),
-          const ShimmerCard(height: 160),
+          const SizedBox(height: 12),
         ],
       ),
     );
@@ -227,9 +225,7 @@ class _SegmentedTabBar extends StatelessWidget {
                 curve: Curves.easeInOut,
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? Colors.white
-                      : Colors.transparent,
+                  color: isSelected ? Colors.white : Colors.transparent,
                   borderRadius: BorderRadius.circular(26),
                   boxShadow: isSelected
                       ? [
@@ -250,7 +246,9 @@ class _SegmentedTabBar extends StatelessWidget {
                       size: 14,
                       color: isSelected
                           ? const Color(0xFF6366F1)
-                          : isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                          : isDark
+                          ? Colors.white38
+                          : const Color(0xFF94A3B8),
                     ),
                     const SizedBox(width: 5),
                     Text(
@@ -262,7 +260,9 @@ class _SegmentedTabBar extends StatelessWidget {
                             : FontWeight.w500,
                         color: isSelected
                             ? const Color(0xFF1E293B)
-                            : isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                            : isDark
+                            ? Colors.white38
+                            : const Color(0xFF94A3B8),
                       ),
                     ),
                   ],

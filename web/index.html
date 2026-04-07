@@ -37,13 +37,30 @@
 </head>
 
 <body>
-  <script src="flutter_bootstrap.js" async></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.register('/firebase-messaging-sw.js');
-      });
-    }
+    (async function () {
+      async function bootFlutter() {
+        const script = document.createElement('script');
+        script.src = 'flutter_bootstrap.js';
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      if (!('serviceWorker' in navigator)) {
+        await bootFlutter();
+        return;
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+        await navigator.serviceWorker.ready;
+        console.log('FCM SW registered with scope:', registration.scope);
+      } catch (e) {
+        console.warn('FCM SW registration failed:', e);
+      }
+
+      await bootFlutter();
+    })();
   </script>
 </body>
 

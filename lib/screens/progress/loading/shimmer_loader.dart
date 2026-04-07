@@ -52,14 +52,20 @@ class _ShimmerLoaderState extends State<ShimmerLoader>
             colors: isDark
                 ? [
                     const Color(0xFF1E293B),
-                    Color.lerp(const Color(0xFF1E293B),
-                        const Color(0xFF334155), _anim.value)!,
+                    Color.lerp(
+                      const Color(0xFF1E293B),
+                      const Color(0xFF334155),
+                      _anim.value,
+                    )!,
                     const Color(0xFF1E293B),
                   ]
                 : [
                     const Color(0xFFE2E8F0),
-                    Color.lerp(const Color(0xFFE2E8F0),
-                        const Color(0xFFF1F5F9), _anim.value)!,
+                    Color.lerp(
+                      const Color(0xFFE2E8F0),
+                      const Color(0xFFF1F5F9),
+                      _anim.value,
+                    )!,
                     const Color(0xFFE2E8F0),
                   ],
             stops: const [0.0, 0.5, 1.0],
@@ -87,16 +93,53 @@ class ShimmerCard extends StatelessWidget {
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(18),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          const ShimmerLoader(width: 80, height: 12),
-          const SizedBox(height: 8),
-          ShimmerLoader(height: 24, width: MediaQuery.of(context).size.width * 0.4),
-          const SizedBox(height: 8),
-          const ShimmerLoader(height: 10),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isTiny = constraints.maxHeight <= 52;
+          final isCompact = constraints.maxHeight <= 74;
+
+          if (isTiny) {
+            return const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerLoader(width: 84, height: 10),
+                SizedBox(height: 6),
+                ShimmerLoader(height: 8),
+              ],
+            );
+          }
+
+          if (isCompact) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const ShimmerLoader(width: 80, height: 11),
+                ShimmerLoader(
+                  height: 18,
+                  width: MediaQuery.of(context).size.width * 0.35,
+                ),
+                const ShimmerLoader(height: 9),
+              ],
+            );
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              const ShimmerLoader(width: 80, height: 12),
+              const SizedBox(height: 8),
+              ShimmerLoader(
+                height: 24,
+                width: MediaQuery.of(context).size.width * 0.4,
+              ),
+              const SizedBox(height: 8),
+              const ShimmerLoader(height: 10),
+            ],
+          );
+        },
       ),
     );
   }
@@ -166,7 +209,9 @@ class ShimmerChart extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: heights
-                  .map((h) => ShimmerLoader(width: 28, height: h, borderRadius: 6))
+                  .map(
+                    (h) => ShimmerLoader(width: 28, height: h, borderRadius: 6),
+                  )
                   .toList(),
             ),
           ),
@@ -174,7 +219,9 @@ class ShimmerChart extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: List.generate(
-                7, (_) => const ShimmerLoader(width: 24, height: 8)),
+              7,
+              (_) => const ShimmerLoader(width: 24, height: 8),
+            ),
           ),
         ],
       ),

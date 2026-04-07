@@ -12,8 +12,7 @@ class RewardsTab extends StatefulWidget {
   State<RewardsTab> createState() => _RewardsTabState();
 }
 
-class _RewardsTabState extends State<RewardsTab>
-    with TickerProviderStateMixin {
+class _RewardsTabState extends State<RewardsTab> with TickerProviderStateMixin {
   late final AnimationController _entranceCtrl;
   late final AnimationController _ringCtrl;
   late final AnimationController _xpCtrl;
@@ -114,45 +113,43 @@ class _RewardsTabState extends State<RewardsTab>
   // ─── Badges ───────────────────────────────────────────────────────────────
 
   List<_Badge> get _badges => [
-        _Badge(
-          name: 'First Step',
-          desc: 'Complete your first practice session',
-          icon: '🎯',
-          unlocked: widget.skills.isNotEmpty,
-        ),
-        _Badge(
-          name: 'On Fire',
-          desc: 'Maintain a 3-day streak',
-          icon: '🔥',
-          unlocked: _currentStreak >= 3,
-        ),
-        _Badge(
-          name: 'Polymath',
-          desc: 'Track 5+ different skills',
-          icon: '🧠',
-          unlocked: widget.skills.length >= 5,
-        ),
-        _Badge(
-          name: 'Expert',
-          desc: 'Reach 80%+ mastery in any skill',
-          icon: '⭐',
-          unlocked:
-              widget.skills.any((s) => s.mastery >= 80),
-        ),
-        _Badge(
-          name: 'Consistent',
-          desc: 'Practice every day for a week',
-          icon: '📅',
-          unlocked: _currentStreak >= 7,
-        ),
-        _Badge(
-          name: 'Deep Diver',
-          desc: 'Add an Advanced difficulty skill',
-          icon: '🏆',
-          unlocked: widget.skills.any(
-              (s) => s.difficultyLevel == 'Advanced'),
-        ),
-      ];
+    _Badge(
+      name: 'First Step',
+      desc: 'Complete your first practice session',
+      icon: '🎯',
+      unlocked: widget.skills.isNotEmpty,
+    ),
+    _Badge(
+      name: 'On Fire',
+      desc: 'Maintain a 3-day streak',
+      icon: '🔥',
+      unlocked: _currentStreak >= 3,
+    ),
+    _Badge(
+      name: 'Polymath',
+      desc: 'Track 5+ different skills',
+      icon: '🧠',
+      unlocked: widget.skills.length >= 5,
+    ),
+    _Badge(
+      name: 'Expert',
+      desc: 'Reach 80%+ mastery in any skill',
+      icon: '⭐',
+      unlocked: widget.skills.any((s) => s.mastery >= 80),
+    ),
+    _Badge(
+      name: 'Consistent',
+      desc: 'Practice every day for a week',
+      icon: '📅',
+      unlocked: _currentStreak >= 7,
+    ),
+    _Badge(
+      name: 'Deep Diver',
+      desc: 'Add an Advanced difficulty skill',
+      icon: '🏆',
+      unlocked: widget.skills.any((s) => s.difficultyLevel == 'Advanced'),
+    ),
+  ];
 
   // ─── Build ────────────────────────────────────────────────────────────────
 
@@ -160,6 +157,8 @@ class _RewardsTabState extends State<RewardsTab>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final badges = _badges;
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+    final badgeExtent = textScale > 1.0 ? 198.0 : 186.0;
     final xpFrac = _xpNextLevel > 0
         ? (_xpCurrentLevel / _xpNextLevel).clamp(0.0, 1.0)
         : 0.0;
@@ -198,28 +197,34 @@ class _RewardsTabState extends State<RewardsTab>
             child: Row(
               children: [
                 Expanded(
-                    child: _MiniStat(
-                        label: 'Current Streak',
-                        value: '$_currentStreak',
-                        icon: Icons.local_fire_department_rounded,
-                        color: const Color(0xFFF59E0B),
-                        isDark: isDark)),
+                  child: _MiniStat(
+                    label: 'Current Streak',
+                    value: '$_currentStreak',
+                    icon: Icons.local_fire_department_rounded,
+                    color: const Color(0xFFF59E0B),
+                    isDark: isDark,
+                  ),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
-                    child: _MiniStat(
-                        label: 'Total XP',
-                        value: '$_totalXP',
-                        icon: Icons.star_rounded,
-                        color: const Color(0xFF6366F1),
-                        isDark: isDark)),
+                  child: _MiniStat(
+                    label: 'Total XP',
+                    value: '$_totalXP',
+                    icon: Icons.star_rounded,
+                    color: const Color(0xFF6366F1),
+                    isDark: isDark,
+                  ),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
-                    child: _MiniStat(
-                        label: 'Skills',
-                        value: '${widget.skills.length}',
-                        icon: Icons.school_outlined,
-                        color: const Color(0xFF10B981),
-                        isDark: isDark)),
+                  child: _MiniStat(
+                    label: 'Skills',
+                    value: '${widget.skills.length}',
+                    icon: Icons.school_outlined,
+                    color: const Color(0xFF10B981),
+                    isDark: isDark,
+                  ),
+                ),
               ],
             ),
           ),
@@ -252,12 +257,11 @@ class _RewardsTabState extends State<RewardsTab>
             child: GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
-                childAspectRatio: 1.15,
+                mainAxisExtent: badgeExtent,
               ),
               itemCount: badges.length,
               itemBuilder: (ctx, i) => _BadgeCard(
@@ -323,9 +327,12 @@ class _LevelCard extends StatelessWidget {
             animation: ringCtrl,
             builder: (_, __) => _XPRing(
               level: level,
-              progress: xpFrac * CurvedAnimation(
-                      parent: ringCtrl, curve: Curves.easeInOut)
-                  .value,
+              progress:
+                  xpFrac *
+                  CurvedAnimation(
+                    parent: ringCtrl,
+                    curve: Curves.easeInOut,
+                  ).value,
             ),
           ),
           const SizedBox(height: 16),
@@ -340,10 +347,7 @@ class _LevelCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'Total: $totalXP XP earned',
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-            ),
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
           ),
         ],
       ),
@@ -381,9 +385,10 @@ class _XPRing extends StatelessWidget {
               const Text(
                 'Level',
                 style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.white60,
-                    fontWeight: FontWeight.w600),
+                  fontSize: 11,
+                  color: Colors.white60,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -404,12 +409,13 @@ class _RingPainter extends CustomPainter {
     final radius = (size.width - sw) / 2;
 
     canvas.drawCircle(
-        center,
-        radius,
-        Paint()
-          ..color = Colors.white.withOpacity(0.2)
-          ..strokeWidth = sw
-          ..style = PaintingStyle.stroke);
+      center,
+      radius,
+      Paint()
+        ..color = Colors.white.withOpacity(0.2)
+        ..strokeWidth = sw
+        ..style = PaintingStyle.stroke,
+    );
 
     if (progress > 0) {
       canvas.drawArc(
@@ -450,32 +456,42 @@ class _MiniStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-              color: color.withOpacity(0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4)),
+            color: color.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 18),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.fade,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
+              ),
             ),
           ),
           Text(
             label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 10,
               color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
@@ -553,13 +569,15 @@ class _BadgeCardState extends State<_BadgeCard>
     return ScaleTransition(
       scale: _scale,
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: unlocked
               ? Border.all(
-                  color: const Color(0xFF6366F1).withOpacity(0.3), width: 1.5)
+                  color: const Color(0xFF6366F1).withOpacity(0.3),
+                  width: 1.5,
+                )
               : null,
           boxShadow: unlocked
               ? [
@@ -572,6 +590,7 @@ class _BadgeCardState extends State<_BadgeCard>
               : null,
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Stack(
@@ -580,14 +599,14 @@ class _BadgeCardState extends State<_BadgeCard>
                 Text(
                   widget.badge.icon,
                   style: TextStyle(
-                    fontSize: 36,
+                    fontSize: 32,
                     color: unlocked ? null : Colors.black.withOpacity(0),
                   ),
                 ),
                 if (!unlocked)
                   Container(
-                    width: 52,
-                    height: 52,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: isDark
                           ? Colors.black45
@@ -595,24 +614,31 @@ class _BadgeCardState extends State<_BadgeCard>
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Center(
-                      child: Icon(Icons.lock_outline_rounded,
-                          color: Colors.white, size: 22),
+                      child: Icon(
+                        Icons.lock_outline_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ),
                 // Text behind for sizing
                 Opacity(
                   opacity: unlocked ? 1.0 : 0.0,
-                  child: Text(widget.badge.icon,
-                      style: const TextStyle(fontSize: 36)),
+                  child: Text(
+                    widget.badge.icon,
+                    style: const TextStyle(fontSize: 32),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               widget.badge.name,
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w700,
                 color: unlocked
                     ? (isDark ? Colors.white : const Color(0xFF1E293B))
@@ -626,9 +652,9 @@ class _BadgeCardState extends State<_BadgeCard>
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 9.8,
                 color: isDark ? Colors.white30 : const Color(0xFF94A3B8),
-                height: 1.3,
+                height: 1.2,
               ),
             ),
           ],

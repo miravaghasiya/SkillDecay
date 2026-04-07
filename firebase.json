@@ -1,1 +1,29 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"micro-skill-decay-detector","appId":"1:483787424425:android:c9e2cb142cdf902cc09fb8","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"micro-skill-decay-detector","configurations":{"android":"1:483787424425:android:c9e2cb142cdf902cc09fb8","ios":"1:483787424425:ios:ccafae014e85d22fc09fb8","macos":"1:483787424425:ios:ccafae014e85d22fc09fb8","web":"1:483787424425:web:fbea8882e7473a73c09fb8","windows":"1:483787424425:web:8fdb6d94903ab966c09fb8"}}}}}}
+{
+	"firestore": {
+		"rules": "firestore.rules",
+		"indexes": "firestore.indexes.json"
+	},
+	"flutter": {
+		"platforms": {
+			"android": {
+				"default": {
+					"projectId": "micro-skill-decay-detector",
+					"appId": "1:483787424425:android:c9e2cb142cdf902cc09fb8",
+					"fileOutput": "android/app/google-services.json"
+				}
+			},
+			"dart": {
+				"lib/firebase_options.dart": {
+					"projectId": "micro-skill-decay-detector",
+					"configurations": {
+						"android": "1:483787424425:android:c9e2cb142cdf902cc09fb8",
+						"ios": "1:483787424425:ios:ccafae014e85d22fc09fb8",
+						"macos": "1:483787424425:ios:ccafae014e85d22fc09fb8",
+						"web": "1:483787424425:web:fbea8882e7473a73c09fb8",
+						"windows": "1:483787424425:web:8fdb6d94903ab966c09fb8"
+					}
+				}
+			}
+		}
+	}
+}

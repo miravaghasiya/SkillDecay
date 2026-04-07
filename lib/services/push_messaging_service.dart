@@ -142,6 +142,30 @@ class PushMessagingService {
         debugPrint('FCM: Debug - Token generated is null');
       }
     } catch (e) {
+      final err = e.toString();
+      if (kIsWeb && err.contains('failed-service-worker-registration')) {
+        debugPrint(
+          'FCM: Debug - SW registration not ready, retrying token generation...',
+        );
+        await Future.delayed(const Duration(seconds: 2));
+        try {
+          final vapidKey = dotenv.env['FCM_VAPID_KEY'] ?? '';
+          final retryToken = await _messaging.getToken(
+            vapidKey: vapidKey.isNotEmpty
+                ? vapidKey
+                : "BLDP4GIxdpH5um7Tng4HlLIVsM78daIneA4ReNeSa7xA0OlaIaHFrlrTIRIT7gyXdiFRya3uDfW96RfBY19Ul9s",
+          );
+          if (retryToken != null) {
+            debugPrint('FCM: Debug - Token generated after retry: $retryToken');
+            await _saveTokenToFirestore(retryToken);
+            return;
+          }
+        } catch (retryError) {
+          debugPrint(
+            'FCM: Debug - Retry failed generating FCM token: $retryError',
+          );
+        }
+      }
       debugPrint('FCM: Debug - Error generating FCM token: $e');
     }
   }

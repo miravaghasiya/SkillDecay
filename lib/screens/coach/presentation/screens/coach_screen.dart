@@ -24,10 +24,10 @@ class _CoachScreenState extends State<CoachScreen>
   late final AnimationController _welcomeController;
 
   static const _suggestions = [
-    'What should I practice today?',
-    'How am I doing overall?',
-    'Tips to improve retention',
-    'Create a practice routine',
+    'What should be my next move today?',
+    'Analyze my skill decay patterns',
+    'Give me productivity tips from my data',
+    'Create a 7-day recovery plan',
   ];
 
   @override
@@ -144,74 +144,72 @@ class _CoachScreenState extends State<CoachScreen>
       intervalEnd: 1.0,
       yOffset: -20.0,
       child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6366F1).withOpacity(0.35),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.auto_awesome_rounded,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'AI Coach',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Your personalized learning assistant',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark
-                            ? Colors.white54
-                            : const Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _buildOnlineDot(),
-            ],
-          ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
+        child: Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF6366F1).withOpacity(0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.auto_awesome_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'AI Coach',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Your personalized learning assistant',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            _buildOnlineDot(),
+          ],
+        ),
+      ),
     );
   }
 
@@ -248,65 +246,67 @@ class _CoachScreenState extends State<CoachScreen>
       intervalStart: 0.0,
       intervalEnd: 1.0,
       child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            children: [
-              // Animated icon
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Column(
+          children: [
+            // Animated icon
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF6366F1).withOpacity(0.3),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
                   ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6366F1).withOpacity(0.3),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.auto_awesome_rounded,
-                  size: 38,
-                  color: Colors.white,
-                ),
+                ],
               ),
-              const SizedBox(height: 20),
-              Text(
-                'Ask me anything about your learning',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B),
-                  letterSpacing: -0.2,
-                ),
+              child: const Icon(
+                Icons.auto_awesome_rounded,
+                size: 38,
+                color: Colors.white,
               ),
-              const SizedBox(height: 8),
-              Text(
-                'I can help with practice plans, retention strategies,\nand personalized coaching.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  height: 1.5,
-                  color: isDark ? Colors.white54 : const Color(0xFF64748B),
-                ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Ask me anything about your learning',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                letterSpacing: -0.2,
               ),
-              const SizedBox(height: 28),
-              ..._suggestions
-                  .map((s) => SuggestionChipWidget(
-                        label: s,
-                        onTap: () => _sendMessage(s),
-                      ))
-                  .toList(),
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'I can help with practice plans, retention strategies,\nand personalized coaching.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.5,
+                color: isDark ? Colors.white54 : const Color(0xFF64748B),
+              ),
+            ),
+            const SizedBox(height: 28),
+            ..._suggestions
+                .map(
+                  (s) => SuggestionChipWidget(
+                    label: s,
+                    onTap: () => _sendMessage(s),
+                  ),
+                )
+                .toList(),
+          ],
         ),
+      ),
     );
   }
 
@@ -348,8 +348,9 @@ class _CoachScreenState extends State<CoachScreen>
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color:
-                    isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                color: isDark
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(28),
               ),
               child: TextField(
@@ -366,7 +367,9 @@ class _CoachScreenState extends State<CoachScreen>
                   ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 14),
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
                 ),
                 onSubmitted: _sendMessage,
                 textInputAction: TextInputAction.send,
@@ -406,11 +409,11 @@ class _SendButtonState extends State<_SendButton>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 100),
-        lowerBound: 0.88,
-        upperBound: 1.0)
-      ..value = 1.0;
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+      lowerBound: 0.88,
+      upperBound: 1.0,
+    )..value = 1.0;
     _scale = _ctrl;
   }
 
